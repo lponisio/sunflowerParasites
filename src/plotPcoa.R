@@ -28,11 +28,6 @@ plotCommDist  <- function(dist.mat, spec, cols){
                                             rownames(pcoa.comm),
                                             spec$UniqueID)])
         pcoa.mod <- adonis(dist.mat~GenusSpecies)
-        ## uniq.gensp <- unique(GenusSpecies)
-        ## uniq.gensp[GenSp]
-        ## cols <- add.alpha(brewer.pal(length(uniq.gensp), "Set3"),
-        ##                   alpha=0.8)
-        ## names(cols) <- uniq.gensp
         plot(NA, asp=1,  cex=1.5,
              ylim=range(pcoa.comm[,2]),
              xlim=range(pcoa.comm[,1]),
@@ -77,16 +72,6 @@ plotBetaDiv  <- function(pcoa.res, cols){
         mp1 <- boxplot(pcoa.res,
                        las=2, col=cols, main="")
         mtext("Beta-diversity", 3, line=0.5, cex=1.2)
-
-        ## text(mp1, par('usr')[3],
-        ##      srt = 45, adj = 1,
-        ##      labels = uniq.gensp,
-        ##      xpd = NA,
-        ##      cex=1)
-
-        ## mtext("Minimum", 3, line=0.5, cex=1.2)
-        ## mtext("Effective sample size \n per second",
-        ##       2, line=4.5, cex=1.5, at=at)
     }
     ## function for plotting Pcoa dispersion, i.e., beta diversity
     path <- 'figures'
