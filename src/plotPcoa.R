@@ -1,21 +1,4 @@
-library(RColorBrewer)
-
-
-pdf.f <- function(f, file, ...) {
-    cat(sprintf('Writing %s\n', file))
-    pdf(file, ...)
-    on.exit(dev.off())
-    f()
-}
-
-## add transparency to named colors
-add.alpha <- function(col, alpha=0.2){
-    apply(sapply(col, col2rgb)/255, 2,
-          function(x)
-              rgb(x[1], x[2], x[3],
-                  alpha=alpha))
-}
-
+source("src/misc.R")
 
 plotCommDist  <- function(dist.mat, spec, cols){
 
@@ -46,11 +29,11 @@ plotCommDist  <- function(dist.mat, spec, cols){
         }
         ordihull(pcoa.comm, GenusSpecies)
 
-        legend("topleft", legend=uniq.gensp,
-               bty="n", cex=0.8, col=cols[uniq.gensp],
+        legend("topright", legend=uniq.gensp,
+               bty="n", cex=0.6, col=cols[uniq.gensp],
                pch=16)
-        legend("topleft", legend=uniq.gensp,
-               bty="n", cex=0.8, col="black", pch=1)
+        legend("topright", legend=uniq.gensp,
+               bty="n", cex=0.6, col="black", pch=1)
 
         mtext('PCoA1', 1, line=2, cex=1.5)
         mtext('PCoA2', 2, line=2, cex=1.5)

@@ -2,9 +2,10 @@
 rm(list=ls())
 setwd("analysis/parasiteCommunity")
 library(vegan)
+library(RColorBrewer)
 source("src/plotPcoa.R")
-
 load('../../data/spec.Rdata')
+setseed(4)
 
 parasites <- c("Aspergillus",
                "Ascosphaera", "Apicystis", "Crithidiaspp", "Cexpoeki",
@@ -42,9 +43,6 @@ beta.disper.result <- betadisper(dist.mat, GenSp, type="centroid")
 ## perm.test <- permutest(beta.disper.result,
 ##           control = permControl(nperm = 100),
 ##           pairwise = TRUE)
-
-## ## Draw a boxplot of the distances to centroid for each group
-## boxplot(beta.disper.result)
 
 uniq.gensp <- unique(GenSp)
 uniq.gensp <- sort(uniq.gensp)
