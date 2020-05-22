@@ -51,7 +51,7 @@ plotCoeffs <- function(mod, spec, name, ylabel,
              srt = 45, adj = 1,
              labels = uniq.gensp,
              xpd = NA,
-             cex=1)
+             cex=1.3)
         points(x=1:nrow(coeffs.mod),
                y=means,
                pch=1,
