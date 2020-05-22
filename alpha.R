@@ -4,14 +4,22 @@ setwd("analysis/parasiteCommunity")
 load('../../data/spec.Rdata')
 source("src/plotCoeff.R")
 library(lme4)
+library(RColorBrewer)
 
 parasites <- c("Aspergillus",
                "Ascosphaera", "Apicystis", "Crithidiaspp", "Cexpoeki",
                "Cbombi",  "Nbombi", "Nceranae")
 
+not.enough.data <- c("Melissodes tepida timberlakei",
+                     "Melissodes stearnsi",
+                     "Melissodes communis alopex",
+                     "Melissodes lupina")
+
 not.path.screen <- apply(spec[, parasites], 1,
                          function(x) all(is.na(x)))
 spec <- spec[!not.path.screen,]
+
+spec <- spec[!spec$GenusSpecies %in% not.enough.data,]
 
 spec$ParasiteRichness <- rowSums(spec[, parasites],
                                  na.rm=TRUE)
@@ -36,5 +44,5 @@ mod.pres  <- glm(spec$ParasitePresence~spec$GenusSpecies,
 
 summary(mod.pres)
 
-plotCoeffs(mod.pres, spec, "Presence",  "P(Parasite)",
+plotCoeffs(mod.pres, spec, "Presence",  "Parasite prevalence",
            adj1=0.02, binom=TRUE)
