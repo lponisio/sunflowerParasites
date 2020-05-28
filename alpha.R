@@ -6,9 +6,10 @@ source("src/plotCoeff.R")
 library(lme4)
 library(RColorBrewer)
 
-parasites <- c("Aspergillus",
-               "Ascosphaera", "Apicystis", "Crithidiaspp", "Cexpoeki",
-               "Cbombi",  "Nbombi", "Nceranae")
+parasites <- c("Apicystis",         "Ascosphaera",
+               "Aspergillus",       "CrithidiaSpp",
+               "CrithidiaBombi",    "CrithidiaExpoeki",
+               "NosemaCeranae",     "NosemaBombi" )
 
 not.enough.data <- c("Melissodes tepida timberlakei",
                      "Melissodes stearnsi",
@@ -17,6 +18,7 @@ not.enough.data <- c("Melissodes tepida timberlakei",
 
 not.path.screen <- apply(spec[, parasites], 1,
                          function(x) all(is.na(x)))
+
 spec <- spec[!not.path.screen,]
 
 spec <- spec[!spec$GenusSpecies %in% not.enough.data,]
