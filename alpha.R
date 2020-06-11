@@ -11,17 +11,20 @@ parasites <- c("Apicystis",         "Ascosphaera",
                "CrithidiaBombi",    "CrithidiaExpoeki",
                "NosemaCeranae",     "NosemaBombi" )
 
-not.enough.data <- c("Melissodes tepida timberlakei",
-                     "Melissodes stearnsi",
-                     "Melissodes communis alopex",
-                     "Melissodes lupina")
+## not.enough.data <- c("Melissodes tepida timberlakei",
+##                      "Melissodes stearnsi",
+##                      "Melissodes communis alopex",
+##                      "Melissodes lupina")
 
 not.path.screen <- apply(spec[, parasites], 1,
                          function(x) all(is.na(x)))
 
 spec <- spec[!not.path.screen,]
 
-spec <- spec[!spec$GenusSpecies %in% not.enough.data,]
+spec[, parasites][spec[, parasites] == ""] <- 0
+spec[, parasites] <- apply(spec[, parasites], 2,  as.numeric)
+
+## spec <- spec[!spec$GenusSpecies %in% not.enough.data,]
 
 spec$ParasiteRichness <- rowSums(spec[, parasites],
                                  na.rm=TRUE)
