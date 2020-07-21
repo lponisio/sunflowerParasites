@@ -32,22 +32,37 @@ spec$PossibleParasite <- apply(spec[, parasites], 1,
                                function(x) sum(!is.na(x)))
 spec$ParasitePresence <- (spec$ParasiteRichness >= 1)*1
 
-
 ## The richness of pathogens, how many pathogens out of total possible
 ## successful screenings
-mod.rich  <- glm(cbind(spec$ParasiteRichness,
-          spec$PossibleParasite)~spec$GenusSpecies,
-    family="binomial")
+
+spec$SiteType <- factor(spec$SiteType,
+                        levels= c("HR", "HR + SF", "WM", "WM + SF"))
+
+spec.wild <- spec[spec$GenusSpecies != "Apis mellifera",]
+
+mod.rich  <- glmer(cbind(spec.wild$ParasiteRichness,
+                         spec.wild$PossibleParasite)~
+                       scale(spec.wild$r.degree)*spec.wild$SiteType +
+                       (1|Site),
+                   family="binomial",
+                   data=spec.wild)
+
+## year did not have a sig effect
 
 summary(mod.rich)
 
-plotCoeffs(mod.rich, spec, "Richness",  "Parasite Richness", binom=TRUE)
+## plotCoeffs(mod.rich, spec, "Richness",  "Parasite Richness", binom=TRUE)
 
 ## are you sick at all?
-mod.pres  <- glm(spec$ParasitePresence~spec$GenusSpecies,
-    family="binomial")
+mod.pres  <- glmer(cbind(spec.wild$ParasitePresence,
+                         spec.wild$PossibleParasite)~
+                       scale(spec.wild$r.degree)*spec.wild$SiteType +
+                       (1|Site),
+                   family="binomial",
+                   data=spec.wild)
+
 
 summary(mod.pres)
 
-plotCoeffs(mod.pres, spec, "Presence",  "Parasite prevalence",
-           adj1=0.02, binom=TRUE)
+## plotCoeffs(mod.pres, spec, "Presence",  "Parasite prevalence",
+##            adj1=0.02, binom=TRUE)
