@@ -71,6 +71,7 @@ summary(ma.bee.rich)
 parasite.pres.mod <- glmer(ParasitePresence~
                            TransectType*scale(SFBloom) +
                            scale(TotalAbundance) +
+                            scale(Richness) +
                            scale(r.degree) +
                            scale(MeanITD)+
                            Sociality +
@@ -80,7 +81,8 @@ parasite.pres.mod <- glmer(ParasitePresence~
                            data=spec.wild.sub,
                            na.action = "na.fail")
 
-ms.parasite.pres <- dredge(parasite.pres.mod)
+ms.parasite.pres <- dredge(parasite.pres.mod,
+           subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
 
 subset(ms.parasite.pres, delta <2)
 ma.parasite.pres <- model.avg(ms.parasite.pres, subset= delta < 2,
@@ -97,10 +99,14 @@ summary(ma.parasite.pres)
 ## social bees > solitary
 ## higher abundaunce lowers parasitism rates, suggesting dilution
 
+## *************************************************************
 ## parasite richness within a bee
+## *************************************************************
+
 parasite.rich.mod <- glmer(cbind(ParasiteRichness, PossibleParasite)~
                            TransectType*scale(SFBloom) +
-                           scale(TotalAbundance) +
+                               scale(TotalAbundance) +
+                               scale(Richness) +
                            scale(r.degree) +
                            scale(MeanITD)+
                            Sociality +
@@ -110,7 +116,8 @@ parasite.rich.mod <- glmer(cbind(ParasiteRichness, PossibleParasite)~
                            data=spec.wild.sub,
                            na.action = "na.fail")
 
-ms.parasite.rich <- dredge(parasite.rich.mod)
+ms.parasite.rich <- dredge(parasite.rich.mod,
+           subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
 
 subset(ms.parasite.rich, delta <2)
 ma.parasite.rich <- model.avg(ms.parasite.rich, subset= delta < 2,
@@ -122,3 +129,39 @@ summary(ma.parasite.rich)
 ## the number of  parasites  in generalist bees < specialist bees
 ## large bees > small bees
 ## higher abundaunce lowers parasite richness, suggesting dilution
+
+
+
+## *************************************************************
+## parasite presence honey bees
+## *************************************************************
+hb <- spec[spec$GenusSpecies == "Apis mellifera",]
+hb$SFBloom <- as.numeric(hb$SFBloom)
+
+parasite.pres.mod.hb <- glmer(ParasitePresence~
+                           TransectType*scale(SFBloom) +
+                           scale(TotalAbundance) +
+                            scale(Richness) +
+                           (1|Site),
+                           family="binomial",
+                           glmerControl(optimizer="bobyqa"),
+                           data=hb,
+                           na.action = "na.fail")
+
+summary(parasite.pres.mod.hb)
+vif(parasite.pres.mod.hb)
+
+## native bee abundaunce has a positive effect on honey bee parasitism rates
+
+parasite.rich.mod.hb <- glmer(cbind(ParasiteRichness, PossibleParasite)~
+                           TransectType*scale(SFBloom) +
+                           scale(TotalAbundance) +
+                            scale(Richness) +
+                           (1|Site),
+                           family="binomial",
+                           glmerControl(optimizer="bobyqa"),
+                           data=hb,
+                           na.action = "na.fail")
+
+summary(parasite.rich.mod.hb)
+vif(parasite.rich.mod.hb)
