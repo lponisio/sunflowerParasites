@@ -1,17 +1,10 @@
 ## setwd("~/Dropbox/sunflower")
 setwd("analysis/parasiteCommunity")
 rm(list=ls())
-## library(devtools)
-## install_github("jslefche/piecewiseSEM")
-library(piecewiseSEM)
 library(lme4)
 library(lmerTest)
 library(car)
 library(MuMIn)
-
-load("../../data/spec.Rdata")
-by.site <- read.csv("../../data/bySite.csv")
-load('../../../sunflower_saved/data/nat_HR_buffers.Rdata')
 
 source("src/initialize.R")
 
@@ -20,101 +13,84 @@ cor.test(by.site$Richness, by.site$TotalAbundance)
 ## SHUCKS!
 
 ## *************************************************************
-## make formulas for path analyses
-## *************************************************************
-
-spec.wild.sub <- spec.wild[!is.na(spec.wild$MeanITD),]
-
-## formula for site effects on the bee community
-formula.bee <- formula(s.TotalAbundance ~ s.Nat1000 +
-                           s.HR1000 +
-                           AdjHR +
-                           s.SFBloom   +
-                           (1|Site))
-
-## formulas for the site effects on parasites
-
-formula.par <- formula(ParasitePresence ~
-                           AdjHR +
-                           s.SFBloom   +
-                           s.TotalAbundance +
-                           s.r.degree +
-                           (1|Site))
-
-
-## don't know why this doesn't work!!!!!!!!!!!!!!
-mods  <- psem(
-        BeeAbund = lmer(formula.bee,
-                         data = by.site),
-        ParPath = glmer(formula.par,
-                       data = spec.wild.sub,
-                       family="binomial"))
-
-summary(mods)
-## *************************************************************
-## trying withing sem in pieces
+## model selection: bee abund
 ## *************************************************************
 
 library(car)
-bee.abund.mod <- glmer(TotalAbundance~ scale(Nat1000) +
+## full model
+bee.abund.mod <- glmer.nb(TotalAbundance~ scale(Nat1000) +
+                           scale(Nat2500) +
+                           scale(HR350) +
                            scale(HR1000) +
+                           scale(SunflowerCurrent1000) +
+                           scale(SunflowerLastYr1000) +
                            TransectType*scale(SFBloom) +
-                           AdjHR +
                            (1|Site),
-                       data=by.site, family="poisson")
+                        na.action = "na.fail",
+                       data=by.site)
+## exclude the different gaussian decays from being included in the same model
+ms.bee.abund <- dredge(bee.abund.mod,
+   subset =  !("scale(Nat1000)" && "scale(Nat2500)") &&
+            !("scale(HR350)" && "scale(HR1000)"))
 
-vif(bee.abund.mod)
-summary(bee.abund.mod)
-## plot(density(residuals(bee.abund.mod)))
+subset(ms.bee.abund, delta <2)
+ma.bee.abund <- model.avg(ms.bee.abund, subset= delta < 2,
+                          revised.var = TRUE)
+
+summary(ma.bee.abund)
+## print(ms.bee.abund, abbrev.names=FALSE)
+
+## *************************************************************
+## bee richness
+## *************************************************************
 
 bee.rich.mod <- lmer(Richness~ scale(Nat1000) +
+                           scale(Nat2500) +
                            scale(HR350) +
+                           scale(HR1000) +
+                           scale(SunflowerCurrent1000) +
+                           scale(SunflowerLastYr1000) +
                            TransectType*scale(SFBloom) +
-                           AdjHR +
                            (1|Site),
+                        na.action = "na.fail",
                        data=by.site)
+## exclude the different gaussian decays from being included in the same model
+ms.bee.rich <- dredge(bee.rich.mod,
+   subset =  !("scale(Nat1000)" && "scale(Nat2500)") &&
+            !("scale(HR350)" && "scale(HR1000)"))
 
-vif(bee.rich.mod)
-summary(bee.rich.mod)
-## plot(density(residuals(bee.rich.mod)))
+subset(ms.bee.rich, delta <2)
+ma.bee.rich <- model.avg(ms.bee.rich, subset= delta < 2,
+                          revised.var = TRUE)
 
+summary(ma.bee.rich)
+
+## *************************************************************
 ## parasite presence (any parasite)
-bee.parasite.pres.mod <- glmer(ParasitePresence~
-                           AdjHR +
-                           TransectType +scale(SFBloom) +
+## *************************************************************
+parasite.pres.mod <- glmer(ParasitePresence~
+                           TransectType*scale(SFBloom) +
                            scale(TotalAbundance) +
                            scale(r.degree) +
                            scale(MeanITD)+
                            Sociality +
-                           NestLoc +
                            (1|Site),
                            family="binomial",
                            glmerControl(optimizer="bobyqa"),
                            data=spec.wild.sub,
                            na.action = "na.fail")
 
-vif(bee.parasite.pres.mod)
-summary(bee.parasite.pres.mod)
+ms.parasite.pres <- dredge(parasite.pres.mod)
 
-ms.parasite.pres <- dredge(bee.parasite.pres.mod)
-print(ms.parasite.pres, abbrev.names=FALSE)
+subset(ms.parasite.pres, delta <2)
+ma.parasite.pres <- model.avg(ms.parasite.pres, subset= delta < 2,
+                          revised.var = TRUE)
+
+summary(ma.parasite.pres)
 
 ## simplified model sociality, degree and body size are highly
 ## colinear. Small bees tend to be social and generalized
 
-bee.parasite.pres.mod <- glmer(ParasitePresence~
-                           scale(TotalAbundance) +
-                           scale(r.degree) +
-                           ## scale(MeanITD)+
-                           ## Sociality +
-                           (1|Site),
-                           family="binomial",
-                           glmerControl(optimizer="bobyqa"),
-                           data=spec.wild.sub,
-                           na.action = "na.fail")
-
-vif(bee.parasite.pres.mod)
-summary(bee.parasite.pres.mod)
 
 ## the rate of parasitism in generalist bees < specialist bees
 ## large bees > small bees
@@ -122,42 +98,25 @@ summary(bee.parasite.pres.mod)
 ## higher abundaunce lowers parasitism rates, suggesting dilution
 
 ## parasite richness within a bee
-bee.parasite.rich.mod <- glmer(cbind(ParasiteRichness,
-                                     PossibleParasite)~
-                           AdjHR +
-                           TransectType +scale(SFBloom) +
+parasite.rich.mod <- glmer(cbind(ParasiteRichness, PossibleParasite)~
+                           TransectType*scale(SFBloom) +
                            scale(TotalAbundance) +
                            scale(r.degree) +
                            scale(MeanITD)+
                            Sociality +
-                           NestLoc +
                            (1|Site),
                            family="binomial",
                            glmerControl(optimizer="bobyqa"),
                            data=spec.wild.sub,
                            na.action = "na.fail")
 
-vif(bee.parasite.rich.mod)
-summary(bee.parasite.rich.mod)
+ms.parasite.rich <- dredge(parasite.rich.mod)
 
-ms.parasite.rich <- dredge(bee.parasite.rich.mod)
-print(ms.parasite.rich, abbrev.names=FALSE)
+subset(ms.parasite.rich, delta <2)
+ma.parasite.rich <- model.avg(ms.parasite.rich, subset= delta < 2,
+                          revised.var = TRUE)
 
-## simplified model
-bee.parasite.rich.mod <- glmer(cbind(ParasiteRichness,
-                                     PossibleParasite)~
-                                   scale(TotalAbundance) +
-                                   ## scale(r.degree) +
-                                   scale(MeanITD)+
-                                   (1|Site),
-                               family="binomial",
-                               glmerControl(optimizer="bobyqa"),
-                               data=spec.wild.sub,
-                               na.action = "na.fail")
-
-vif(bee.parasite.rich.mod)
-summary(bee.parasite.rich.mod)
-
+summary(ma.parasite.rich)
 ## same issue of colinearily between degree and body size
 
 ## the number of  parasites  in generalist bees < specialist bees
