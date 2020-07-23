@@ -53,7 +53,7 @@ plotBetaDiv  <- function(pcoa.res, cols){
     f.plotBetaDiv <- function(){
         par(mar=c(12,5,0,1))
         mp1 <- boxplot(pcoa.res,
-                       las=2, col=cols, main="")
+                       las=2, col=cols, main="", xlab="")
         mtext("Beta-diversity", 3, line=0.5, cex=1.2)
     }
     ## function for plotting Pcoa dispersion, i.e., beta diversity
