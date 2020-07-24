@@ -14,10 +14,9 @@ cor.test(by.site$Richness, by.site$TotalAbundance)
 ## SHUCKS!
 
 ## *************************************************************
-## model selection: bee abund
+## model selection: bee abundunace
 ## *************************************************************
 
-library(car)
 ## full model
 bee.abund.mod <- glmer.nb(TotalAbundance~
                               scale(Doy)+
@@ -31,7 +30,8 @@ bee.abund.mod <- glmer.nb(TotalAbundance~
                               (1|Site),
                           na.action = "na.fail",
                           data=by.site)
-## exclude the different gaussian decays from being included in the same model
+## exclude the different gaussian decays from being included in the
+## same model
 ms.bee.abund <- dredge(bee.abund.mod,
                        subset =  !("scale(Nat1000)" && "scale(Nat350)") &&
                            !("scale(HR350)" && "scale(HR1000)"))
@@ -58,7 +58,8 @@ bee.rich.mod <- lmer(Richness~ scale(Doy) +
                            (1|Site),
                         na.action = "na.fail",
                        data=by.site)
-## exclude the different gaussian decays from being included in the same model
+## exclude the different gaussian decays from being included in the
+## same model
 ms.bee.rich <- dredge(bee.rich.mod,
    subset =  !("scale(Nat1000)" && "scale(Nat350)") &&
             !("scale(HR350)" && "scale(HR1000)"))
@@ -85,6 +86,8 @@ parasite.pres.mod <- glmer(ParasitePresence~
                            data=spec.wild.sub,
                            na.action = "na.fail")
 
+## include richness and abundaunce from the same model as they are
+## very colinear
 ms.parasite.pres <- dredge(parasite.pres.mod,
            subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
 
@@ -120,6 +123,8 @@ parasite.rich.mod <- glmer(cbind(ParasiteRichness, PossibleParasite)~
                            data=spec.wild.sub,
                            na.action = "na.fail")
 
+## include richness and abundaunce from the same model as they are
+## very colinear
 ms.parasite.rich <- dredge(parasite.rich.mod,
            subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
 
@@ -155,7 +160,8 @@ parasite.pres.mod.hb <- glmer(ParasitePresence~
 summary(parasite.pres.mod.hb)
 vif(parasite.pres.mod.hb)
 
-## native bee abundaunce has a positive effect on honey bee parasitism rates
+## native bee abundaunce has a positive effect on honey bee parasitism
+## rates
 
 parasite.rich.mod.hb <- glmer(cbind(ParasiteRichness, PossibleParasite)~
                            TransectType*scale(SFBloom) +
