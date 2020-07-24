@@ -8,6 +8,7 @@ library(MuMIn)
 
 source("src/initialize.R")
 
+
 ## are bee richness and abundance correlated?
 cor.test(by.site$Richness, by.site$TotalAbundance)
 ## SHUCKS!
@@ -18,20 +19,22 @@ cor.test(by.site$Richness, by.site$TotalAbundance)
 
 library(car)
 ## full model
-bee.abund.mod <- glmer.nb(TotalAbundance~ scale(Nat1000) +
-                           scale(Nat2500) +
-                           scale(HR350) +
-                           scale(HR1000) +
-                           scale(SunflowerCurrent1000) +
-                           scale(SunflowerLastYr1000) +
-                           TransectType*scale(SFBloom) +
-                           (1|Site),
-                        na.action = "na.fail",
-                       data=by.site)
+bee.abund.mod <- glmer.nb(TotalAbundance~
+                              scale(Doy)+
+                              scale(Nat350) +
+                              scale(Nat1000) +
+                              scale(HR350) +
+                              scale(HR1000) +
+                              scale(SunflowerCurrent1000) +
+                              scale(SunflowerLastYr1000) +
+                              TransectType*scale(SFBloom) +
+                              (1|Site),
+                          na.action = "na.fail",
+                          data=by.site)
 ## exclude the different gaussian decays from being included in the same model
 ms.bee.abund <- dredge(bee.abund.mod,
-   subset =  !("scale(Nat1000)" && "scale(Nat2500)") &&
-            !("scale(HR350)" && "scale(HR1000)"))
+                       subset =  !("scale(Nat1000)" && "scale(Nat350)") &&
+                           !("scale(HR350)" && "scale(HR1000)"))
 
 subset(ms.bee.abund, delta <2)
 ma.bee.abund <- model.avg(ms.bee.abund, subset= delta < 2,
@@ -44,8 +47,9 @@ summary(ma.bee.abund)
 ## bee richness
 ## *************************************************************
 
-bee.rich.mod <- lmer(Richness~ scale(Nat1000) +
-                           scale(Nat2500) +
+bee.rich.mod <- lmer(Richness~ scale(Doy) +
+                         scale(Nat1000) +
+                           scale(Nat350) +
                            scale(HR350) +
                            scale(HR1000) +
                            scale(SunflowerCurrent1000) +
@@ -56,11 +60,11 @@ bee.rich.mod <- lmer(Richness~ scale(Nat1000) +
                        data=by.site)
 ## exclude the different gaussian decays from being included in the same model
 ms.bee.rich <- dredge(bee.rich.mod,
-   subset =  !("scale(Nat1000)" && "scale(Nat2500)") &&
+   subset =  !("scale(Nat1000)" && "scale(Nat350)") &&
             !("scale(HR350)" && "scale(HR1000)"))
 
 subset(ms.bee.rich, delta <2)
-ma.bee.rich <- model.avg(ms.bee.rich, subset= delta < 2,
+ma.bee.rich <- model.avg(ms.bee.rich, subset= delta < 2.2,
                           revised.var = TRUE)
 
 summary(ma.bee.rich)
