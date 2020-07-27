@@ -144,6 +144,7 @@ summary(ma.parasite.rich)
 ## *************************************************************
 ## parasite presence honey bees
 ## *************************************************************
+
 hb <- spec[spec$GenusSpecies == "Apis mellifera",]
 hb$SFBloom <- as.numeric(hb$SFBloom)
 
@@ -157,8 +158,14 @@ parasite.pres.mod.hb <- glmer(ParasitePresence~
                            data=hb,
                            na.action = "na.fail")
 
-summary(parasite.pres.mod.hb)
-vif(parasite.pres.mod.hb)
+ms.parasite.pres.hb <- dredge(parasite.pres.mod.hb,
+           subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
+
+subset(ms.parasite.pres.hb, delta <2)
+ma.parasite.pres.hb <- model.avg(ms.parasite.pres.hb, subset= delta < 2,
+                          revised.var = TRUE)
+
+summary(ma.parasite.pres.hb)
 
 ## native bee abundaunce has a positive effect on honey bee parasitism
 ## rates
@@ -173,5 +180,24 @@ parasite.rich.mod.hb <- glmer(cbind(ParasiteRichness, PossibleParasite)~
                            data=hb,
                            na.action = "na.fail")
 
-summary(parasite.rich.mod.hb)
-vif(parasite.rich.mod.hb)
+ms.parasite.rich.hb <- dredge(parasite.rich.mod.hb,
+           subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
+
+subset(ms.parasite.rich.hb, delta <2)
+ma.parasite.rich.hb <- model.avg(ms.parasite.rich.hb, subset= delta < 2,
+                          revised.var = TRUE)
+
+summary(ma.parasite.rich.hb)
+
+## parasite richness is - related to native bee richness
+
+save(ma.bee.abund, ma.bee.rich, ma.parasite.pres,
+ma.parasite.rich.hb, ma.parasite.pres.hb,
+    file="saved/parMods.RData")
+
+
+
+coeffs <- summary(ma.parasite.pres)$coefmat.subset
+ci <- confint(ma.parasite.pres)
+
+plot(by.site$Parasitism ~ by.site$TotalAbundance)

@@ -77,6 +77,8 @@ by.site$SFBloom <- as.numeric(by.site$SFBloom)
 by.site$s.SFBloom <- scale(by.site$SFBloom)
 
 by.site$log.TotalAbundance <- log(by.site$TotalAbundance)
+## by.site$Doy <- as.numeric(strftime(by.site$Date, format = "%j"))
+
 
 spec <- merge(spec, by.site)
 
@@ -97,3 +99,5 @@ spec$s.r.degree <- scale(spec$r.degree)
 ## drop Apis
 spec.wild <- spec[spec$GenusSpecies != "Apis mellifera",]
 spec.wild$SFBloom <- as.numeric(spec.wild$SFBloom)
+
+spec.wild.sub <- spec.wild[!is.na(spec.wild$MeanITD),]
