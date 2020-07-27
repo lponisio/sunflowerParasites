@@ -36,12 +36,14 @@ ms.bee.abund <- dredge(bee.abund.mod,
                        subset =  !("scale(Nat1000)" && "scale(Nat350)") &&
                            !("scale(HR350)" && "scale(HR1000)"))
 
-subset(ms.bee.abund, delta <2)
+
 ma.bee.abund <- model.avg(ms.bee.abund, subset= delta < 2,
                           revised.var = TRUE)
 
 summary(ma.bee.abund)
 ## print(ms.bee.abund, abbrev.names=FALSE)
+
+visreg(ma.bee.abund)
 
 ## *************************************************************
 ## bee richness
@@ -191,13 +193,44 @@ summary(ma.parasite.rich.hb)
 
 ## parasite richness is - related to native bee richness
 
-save(ma.bee.abund, ma.bee.rich, ma.parasite.pres,
-ma.parasite.rich.hb, ma.parasite.pres.hb,
-    file="saved/parMods.RData")
+save(ma.bee.abund,
+     ms.bee.abund,
+     ma.bee.rich,
+     ms.bee.rich,
+     ma.parasite.pres,
+     ms.parasite.pres,
+     ma.parasite.rich.hb,
+     ms.parasite.rich.hb,
+     ma.parasite.pres.hb,
+     ms.parasite.pres.hb,
+     file="saved/parMods.RData")
 
 
 
-coeffs <- summary(ma.parasite.pres)$coefmat.subset
-ci <- confint(ma.parasite.pres)
+## coeffs <- summary(ma.parasite.pres)$coefmat.subset
+## ci <- confint(ma.parasite.pres)
 
-plot(by.site$Parasitism ~ by.site$TotalAbundance)
+
+## expit <- function(x) exp(x)/(1 + exp(x))
+
+## binomial.curve <- function(x, intercept, slope){
+##     y <- expit(intercept + x * slope)
+##     return(y)
+## }
+
+## plot(by.site$Parasitism ~ by.site$TotalAbundance)
+## curve(binomial.curve(x=x, intercept =
+##                        (coeffs[1,1]),
+##               slope=(coeffs[3,1])),
+##               lwd=1.5, add=TRUE)
+
+
+## plot(spec.wild$Parasitism ~ spec.wild$MeanITD)
+## curve(binomial.curve(x=x, intercept =
+##                        (coeffs[1,1]),
+##               slope=(coeffs[2,1])),
+##               lwd=1.5, add=TRUE)
+
+
+
+## get.models(ms.parasite.pres, 1)[[1]]
