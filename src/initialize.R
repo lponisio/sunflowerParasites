@@ -56,27 +56,9 @@ by.site$SunflowerLastYr1000[by.site$Year == "2018"] <-
 by.site$SunflowerLastYr2500[by.site$Year == "2018"] <-
     by.site$SF2017_2500[by.site$Year == "2018"]
 
-by.site$s.Nat350 <- scale(by.site$Nat350)
-by.site$s.Nat1000 <- scale(by.site$Nat1000)
-by.site$s.Nat2500 <- scale(by.site$Nat2500)
-
-by.site$s.HR350 <- scale(by.site$HR350)
-by.site$s.HR1000 <- scale(by.site$HR1000)
-by.site$s.HR2500 <- scale(by.site$HR2500)
-
-
-by.site$s.SunflowerLastYr350 <- scale(by.site$SunflowerLastYr350)
-by.site$s.SunflowerLastYr1000 <- scale(by.site$SunflowerLastYr1000)
-by.site$s.SunflowerLastYr2500 <- scale(by.site$SunflowerLastYr2500)
-
-by.site$s.SunflowerCurrent350 <- scale(by.site$SunflowerCurrent350)
-by.site$s.SunflowerCurrent1000 <- scale(by.site$SunflowerCurrent1000)
-by.site$s.SunflowerCurrent2500 <- scale(by.site$SunflowerCurrent2500)
-
 by.site$SFBloom <- as.numeric(by.site$SFBloom)
-by.site$s.SFBloom <- scale(by.site$SFBloom)
 
-by.site$log.TotalAbundance <- log(by.site$TotalAbundance)
+by.site$LogTotalAbundance <- log(by.site$TotalAbundance)
 ## by.site$Doy <- as.numeric(strftime(by.site$Date, format = "%j"))
 
 
@@ -92,7 +74,6 @@ not.path.screen <- apply(spec[, parasites], 1,
 spec <- spec[!not.path.screen,]
 
 spec$r.degree <- as.numeric(spec$r.degree)
-spec$s.r.degree <- scale(spec$r.degree)
 
 ## spec$s.TotalAbundance <- scale(spec$TotalAbundance)
 
@@ -100,4 +81,8 @@ spec$s.r.degree <- scale(spec$r.degree)
 spec.wild <- spec[spec$GenusSpecies != "Apis mellifera",]
 spec.wild$SFBloom <- as.numeric(spec.wild$SFBloom)
 
-spec.wild.sub <- spec.wild[!is.na(spec.wild$MeanITD),]
+spec.wild.sub <- spec.wild[!is.na(spec.wild$Lecty) &
+                          !is.na(spec.wild$MeanITD),]
+
+## sadly drops all 2018 data
+by.site <- by.site[!is.na(by.site$PlantRichness),]

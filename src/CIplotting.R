@@ -6,10 +6,9 @@ plot.panel <- function(dats,
                        col.fill,
                        ylabel,
                        plot.x=TRUE,
-                       pchs=c(16),
                        factor.var,
                        factor.var.col,
-                       cols.points){
+                       cols.points, ...){
     plotting.loop <- function(){
         for(var in factor.var){
             these.dats <- dats[dats[, factor.var.col]== var,]
@@ -37,29 +36,22 @@ plot.panel <- function(dats,
                       col=col.lines,
                       lty="dashed")
             }
-            ## points(x=ys$x,
-            ##        y=ys$y,
-            ##        pch=pchs,
-            ##        col=cols.points[these.dats$GenusSpecies],
-            ##        cex=1.2)
-            ## points(x=ys$x,
-            ##        y=ys$y,
-            ##        pch=1,
-            ##        col="black",
-            ##        cex=1.2)
         }
 
         ys <- data.frame(y=dats[,y1], x=dats[,xs])
         these.cols <- cols.points[dats$GenusSpecies]
-        if(all(is.na(these.cols))) these.cols <- "black"
+        if(all(is.na(these.cols))) these.cols <- cols.var[dats[, factor.var.col]]
+        ## pchs <- 1:length(unique(dats[, factor.var.col])) +14
+        ## names(pchs) <- unique(dats[, factor.var.col])
+        ## these.pchs <- pchs[dats[, factor.var.col]]
+
         points(x=ys$x,
                y=ys$y,
-               pch=pchs,
+               pch=16,
                col=these.cols,
                cex=1.2)
         points(x=ys$x,
                y=ys$y,
-               pch=1,
                col="black",
                cex=1.2)
     }
@@ -71,7 +63,7 @@ plot.panel <- function(dats,
          ylab="",
          xaxt="n",
          yaxt="n",
-         las=1)
+         las=1, ...)
 
     axis(2, pretty(range(c(0, new.dd$plo, new.dd$phi,
                            dats[, y1]),
