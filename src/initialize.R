@@ -79,10 +79,18 @@ spec$r.degree <- as.numeric(spec$r.degree)
 
 ## drop Apis
 spec.wild <- spec[spec$GenusSpecies != "Apis mellifera",]
+spec.wild <- spec.wild[spec.wild$GenusSpecies != "Osmia californica",]
 spec.wild$SFBloom <- as.numeric(spec.wild$SFBloom)
 
-spec.wild.sub <- spec.wild[!is.na(spec.wild$Lecty) &
-                          !is.na(spec.wild$MeanITD),]
+spec.wild.sub <- spec.wild[!is.na(spec.wild$Sociality) &
+                           !is.na(spec.wild$MeanITD) &
+                           !is.na(spec.wild$r.degree),]
+
+
 
 ## sadly drops all 2018 data
-by.site <- by.site[!is.na(by.site$PlantRichness),]
+by.site <- by.site[!is.na(by.site$FloralRichness),]
+
+
+hb <- spec[spec$GenusSpecies == "Apis mellifera",]
+hb$SFBloom <- as.numeric(hb$SFBloom)

@@ -1,6 +1,6 @@
 
 plotSigModelsParPres <- function(){
-    layout(matrix(1:2, nrow=1))
+    layout(matrix(1:3, nrow=1))
     par(oma=c(4,4,1,2), mar=c(1,2,1,1),
         mgp=c(1.5,0.5,0))
     plot.panel(dats=by.site1,
@@ -17,7 +17,25 @@ plotSigModelsParPres <- function(){
     mtext("Wild bee abundance", 1, line=3)
     legend("topright", legend=names(cols.var),
            col=cols.var, pch=c(15),
-           bty="n")
+           bty="n", cex=2)
+
+
+     plot.panel(dats=by.site1,
+               new.dd=bloom.pi,
+               y1="ParasitePresence",
+               xs="FloralDiv",
+               col.lines="black",
+               col.fill=cols.var,
+               ylabel="",
+               plot.x=TRUE,
+               factor.var=unique(sp.by.site$Sociality),
+               factor.var.col="Sociality",
+               cols.points ="black")
+    mtext("Floral diversity", 1, line=3)
+       legend("topright", legend=names(cols.var),
+           col=cols.var, pch=c(15),
+           bty="n", cex=2)
+
 
     plot.panel(dats=sp.by.site,
                new.dd=itd.pi,
@@ -33,44 +51,11 @@ plotSigModelsParPres <- function(){
 
     mtext("Body size (ITD mm)", 1, line=3)
 
-}
+      legend("bottomright", legend=names(cols.sp),
+           col=cols.sp, pch=c(15),
+           bty="n", cex=.65, ncol=1)
 
 
-
-
-plotNonSigModelsParPres <- function(){
-    layout(matrix(1:2, nrow=1))
-    par(oma=c(4,4,1,2), mar=c(1,2,1,1),
-        mgp=c(1.5,0.5,0))
-    plot.panel(dats=sp.by.site,
-               new.dd=degree.pi,
-               y1="ParasitePresence",
-               xs="r.degree",
-               col.lines="black",
-               col.fill=cols.var,
-               ylabel="Parasitism rate",
-               plot.x=TRUE,
-               factor.var=unique(sp.by.site$Sociality),
-               factor.var.col="Sociality",
-               cols.points =cols.sp)
-    mtext("Degree", 1, line=3)
-
- plot.panel(dats=by.site1,
-           new.dd=bloom.pi,
-           y1="ParasitePresence",
-           xs="SFBloom",
-           col.lines="black",
-           col.fill=cols.var,
-           ylabel="",
-           plot.x=TRUE,
-           factor.var=unique(sp.by.site$Sociality),
-           factor.var.col="Sociality",
-           cols.points ="black")
-  legend("top", legend=names(cols.var),
-           col=cols.var,  pch=c(15),
-           bty="n")
-
-    mtext("Sunflower bloom", 1, line=3)
 
 }
 
@@ -107,7 +92,7 @@ plotSigModelsBeeAbund <- function(){
     legend("topright",
            legend=c("Hedgerow", "Sunflower", "Weedy margin"),
            col=cols.var, pch=c(15),
-           bty="n")
+           bty="n", cex=2)
 
     mtext("Natural habitat proximity", 1, line=3)
 
@@ -165,5 +150,28 @@ plotSigModelsBeeRich <- function(){
            legend=c("Hedgerow", "Sunflower", "Weedy margin"),
            col=cols.var, pch=c(15),
            bty="n")
+
+}
+
+
+
+
+plotSigModelsHBPres <- function(){
+    par(oma=c(4,4,1,2), mar=c(1,2,1,1),
+        mgp=c(1.5,0.5,0))
+    by.site2$cats <- "all"
+    hb.rich.pi$cats <- "all"
+    plot.panel(dats=by.site2,
+               new.dd=hb.rich.pi,
+               y1="ParasitePresence",
+               xs="FloralRichness",
+               col.lines="black",
+               col.fill=cols.var,
+               ylabel="Honey bee parasitism",
+               plot.x=TRUE,
+               factor.var="all",
+               factor.var.col="cats",
+               cols.points ="black")
+    mtext("FloralRichness", 1, line=3)
 
 }

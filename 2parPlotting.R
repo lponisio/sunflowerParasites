@@ -22,7 +22,7 @@ by.site$TransectType <- factor(by.site$TransectType,
                                levels=c("HR", "SF", "WM"))
 
 cols.sp <- magma(length(unique(sp.by.site$GenusSpecies)))
-names(cols.sp) <- unique(sp.by.site$GenusSpecies)
+names(cols.sp) <- sort(unique(sp.by.site$GenusSpecies))
 
 ## ************************************************************
 ## bee abund models
@@ -31,6 +31,8 @@ summary(ma.bee.abund)
 
 top.mod.abund <- get.models(ms.bee.abund, 1)[[1]]
 summary(top.mod.abund)
+r.squaredGLMM(top.mod.abund)
+vif(top.mod.abund)
 
 cols.var <- add.alpha(viridis(3), 0.5)
 names(cols.var) <- levels(by.site$TransectType)
@@ -42,7 +44,8 @@ dd.doy <- expand.grid(Doy=seq(
                           length=20),
                       Nat1000=mean(by.site$Nat1000),
                       SFBloom=mean(by.site$SFBloom),
-                      SunflowerCurrent1000=mean(by.site$SunflowerCurrent1000),
+                      SunflowerCurrent1000=
+                          mean(by.site$SunflowerCurrent1000),
                       TransectType=unique(by.site$TransectType),
                       TotalAbundance=0)
 
@@ -58,7 +61,8 @@ dd.nat <- expand.grid(Nat1000=seq(
                           length=20),
                       Doy=mean(by.site$Doy),
                       SFBloom=mean(by.site$SFBloom),
-                      SunflowerCurrent1000=mean(by.site$SunflowerCurrent1000),
+                      SunflowerCurrent1000=
+                          mean(by.site$SunflowerCurrent1000),
                       TransectType=unique(by.site$TransectType),
                       TotalAbundance=0)
 
@@ -101,9 +105,6 @@ sf.pi <- predict.int(top.mod.abund,
                       "TotalAbundance",
                       "poisson")
 
-
-
-
 ## sig only models
 pdf.f(plotSigModelsBeeAbund,
       file="figures/beeAbund.pdf",
@@ -115,6 +116,8 @@ pdf.f(plotSigModelsBeeAbund,
 
 top.mod.rich <- get.models(ms.bee.rich,1)[[1]]
 summary(top.mod.rich)
+r.squaredGLMM(top.mod.rich)
+vif(top.mod.rich)
 
 dd.rich.doy <- expand.grid(Doy=seq(
                           from= min(by.site$Doy),
@@ -134,12 +137,16 @@ pdf.f(plotSigModelsBeeRich,
 
 
 ## ************************************************************
-## Parasite presence models
+## Parasite presence models wild bees
 ## ************************************************************
 
 ## Total abundance
- summary(ma.parasite.pres)
+summary(ma.parasite.pres)
 top.mod <- get.models(ms.parasite.pres, 1)[[1]]
+summary(top.mod)
+r.squaredGLMM(top.mod)
+vif(top.mod)
+
 cols.var <- add.alpha(viridis(2), 0.5)
 names(cols.var) <- levels(sp.by.site$Sociality)
 
@@ -147,7 +154,8 @@ dd.abund <- expand.grid(TotalAbundance=seq(
                             from= min(sp.by.site$TotalAbundance),
                             to= max(sp.by.site$TotalAbundance),
                             length=20),
-                        MeanITD=mean(sp.by.site$MeanITD, na.rm=TRUE),
+                        MeanITD=mean(sp.by.site$MeanITD),
+                        FloralDiv=mean(sp.by.site$FloralDiv, na.rm=TRUE),
                         Sociality=unique(sp.by.site$Sociality),
                         ParasitePresence=0)
 
@@ -155,38 +163,30 @@ abund.pi <- predict.int(top.mod,
                         dd.abund,
                         "ParasitePresence",
                         "binomial")
-by.site1 <- sp.by.site
-colnames(by.site1)[colnames(by.site1) == "ParasitePresence"] <-
-    "ParasitePresence1"
 
-colnames(by.site1)[colnames(by.site1) == "Parasitism"] <-
-    "ParasitePresence"
+## floral diversity
+dd.bloom <- expand.grid(FloralDiv=seq(
+                            from= min(sp.by.site$FloralDiv, na.rm=TRUE),
+                            to= max(sp.by.site$FloralDiv, na.rm=TRUE),
+                            length=20),
+                        TotalAbundance=mean(sp.by.site$TotalAbundance),
+                        MeanITD=mean(sp.by.site$MeanITD),
+                        Sociality=unique(sp.by.site$Sociality),
+                        ParasitePresence=0)
 
-## ## SF bloom
-## dd.bloom <- expand.grid(SFBloom=seq(
-##                             from= min(sp.by.site$SFBloom),
-##                             to= max(sp.by.site$SFBloom),
-##                             length=20),
-##                         TotalAbundance=mean(sp.by.site$TotalAbundance),
-##                         MeanITD=mean(sp.by.site$MeanITD),
-##                         Sociality=unique(sp.by.site$Sociality),
-##                         r.degree=mean(sp.by.site$r.degree, na.rm=TRUE),
-##                         ParasitePresence=0)
+bloom.pi <- predict.int(top.mod,
+                        dd.bloom,
+                        "ParasitePresence",
+                        "binomial")
 
-## bloom.pi <- predict.int(top.mod,
-##                         dd.bloom,
-##                         "ParasitePresence",
-##                         "binomial")
 ## ITD
-
 dd.itd <- expand.grid(MeanITD=seq(
                           from= min(sp.by.site$MeanITD),
                           to= max(sp.by.site$MeanITD),
                           length=20),
-                      r.degree=mean(sp.by.site$r.degree, na.rm=TRUE),
                       TotalAbundance=mean(sp.by.site$TotalAbundance),
                       Sociality=unique(sp.by.site$Sociality),
-                      SFBloom=mean(sp.by.site$SFBloom, na.rm=TRUE),
+                      FloralDiv=mean(sp.by.site$FloralDiv, na.rm=TRUE),
                       ParasitePresence=0)
 
 itd.pi <- predict.int(top.mod,
@@ -194,30 +194,53 @@ itd.pi <- predict.int(top.mod,
                       "ParasitePresence",
                       "binomial")
 
-## r.degree
 
-## dd.degree <- expand.grid(r.degree=seq(
-##                              from= min(sp.by.site$r.degree),
-##                              to= max(sp.by.site$r.degree),
-##                              length=20),
-##                     TotalAbundance=mean(sp.by.site$TotalAbundance),
-##                          MeanITD=mean(sp.by.site$MeanITD),
-##                          Sociality=unique(sp.by.site$Sociality),
-##                          SFBloom=mean(sp.by.site$SFBloom, na.rm=TRUE),
-##                          ParasitePresence=0)
 
-## degree.pi <- predict.int(top.mod,
-##                          dd.degree,
-##                          "ParasitePresence",
-##                          "binomial")
+by.site1 <- sp.by.site
+colnames(by.site1)[colnames(by.site1) == "ParasitePresence"] <-
+    "ParasitePresence1"
+
+colnames(by.site1)[colnames(by.site1) == "Parasitism"] <-
+    "ParasitePresence"
 
 ## sig only models
 pdf.f(plotSigModelsParPres,
       file="figures/wildParasitism.pdf",
-      height=5, width=10)
+      height=5, width=15)
 
-## ## "important" but not sig
-## pdf.f(plotNonSigModelsParPres,
-##       file="figures/wildParasitism_nosig.pdf",
-##       height=5, width=10)
+## ************************************************************
+## Parasite presence models wild bees
+## ************************************************************
 
+## Total abundance
+summary(ma.parasite.pres.hb)
+top.mod.hb <- get.models(ms.parasite.pres.hb, 1)[[1]]
+summary(top.mod.hb)
+r.squaredGLMM(top.mod.hb)
+
+
+dd.hb.rich <- expand.grid(FloralRichness=seq(
+                            from= min(by.site$FloralRichness, na.rm=TRUE),
+                            to= max(by.site$FloralRichness, na.rm=TRUE),
+                            length=20),
+                        ParasitePresence=0)
+
+hb.rich.pi <- predict.int(top.mod.hb,
+                        dd.hb.rich,
+                        "ParasitePresence",
+                        "binomial")
+
+by.site2 <- by.site
+colnames(by.site2)[colnames(by.site2) == "ParasitePresence"] <-
+    "ParasitePresence1"
+
+colnames(by.site2)[colnames(by.site2) == "HBParasitism"] <-
+    "ParasitePresence"
+
+cols.var <- add.alpha("goldenrod3", 0.5)
+names(cols.var) <- "all"
+
+## sig only modelsx
+pdf.f(plotSigModelsHBPres,
+      file="figures/HBParasitism.pdf",
+      height=5, width=6)

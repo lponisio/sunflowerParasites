@@ -73,7 +73,7 @@ plot.panel <- function(dats,
     mtext(ylabel, 2, line=4, cex=1)
 
     if(plot.x){
-        axis(1, pretty(dats[,xs], 4))
+        axis(1, pretty(dats[,xs], 5))
     }
     plotting.loop()
 }

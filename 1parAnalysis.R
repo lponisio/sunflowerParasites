@@ -9,8 +9,11 @@ library(MuMIn)
 source("src/initialize.R")
 
 
-## are bee richness and abundance correlated?
+## are bee/floral richness and abundance correlated?
 cor.test(by.site$Richness, by.site$TotalAbundance)
+cor.test(by.site$FloralRichness, by.site$FloralAbundance)
+cor.test(by.site$FloralDiv, by.site$FloralAbundance)
+cor.test(by.site$FloralDiv, by.site$FloralRichness)
 ## SHUCKS!
 
 ## *************************************************************
@@ -20,55 +23,67 @@ cor.test(by.site$Richness, by.site$TotalAbundance)
 ## full model
 bee.abund.mod <- glmer.nb(TotalAbundance~
                               scale(Doy)+
-                              scale(Nat350) +
-                              scale(Nat1000) +
-                              scale(HR350) +
-                              scale(HR1000) +
-                              scale(SunflowerCurrent1000) +
-                              scale(SunflowerLastYr1000) +
+                              scale(log(Nat350)) +
+                              scale(log(Nat1000)) +
+                              scale(log(HR350)) +
+                              scale(log(HR1000)) +
+                              scale(log(SunflowerCurrent1000)) +
+                              scale(log(SunflowerLastYr1000)) +
                               TransectType*scale(SFBloom) +
+                              scale(FloralAbundance) +
+                              scale(FloralRichness) +
+                              scale(FloralDiv) +
                               (1|Site),
                           na.action = "na.fail",
                           data=by.site)
+
 ## exclude the different gaussian decays from being included in the
 ## same model
 ms.bee.abund <- dredge(bee.abund.mod,
-                       subset =  !("scale(Nat1000)" && "scale(Nat350)") &&
-                           !("scale(HR350)" && "scale(HR1000)"))
-
+                       subset =
+                !("scale(log(Nat1000))" && "scale(log(Nat350))") &&
+                !("scale(log(HR350))" && "scale(log(HR1000))") &&
+                !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
+                !("scale(FloralRichness)" && "scale(FloralDiv)"))
 
 ma.bee.abund <- model.avg(ms.bee.abund, subset= delta < 2,
                           revised.var = TRUE)
 
 summary(ma.bee.abund)
-## print(ms.bee.abund, abbrev.names=FALSE)
 
-visreg(ma.bee.abund)
+## print(ms.bee.abund, abbrev.names=FALSE)
 
 ## *************************************************************
 ## bee richness
 ## *************************************************************
 
 bee.rich.mod <- lmer(Richness~ scale(Doy) +
-                         scale(Nat1000) +
-                           scale(Nat350) +
-                           scale(HR350) +
-                           scale(HR1000) +
-                           scale(SunflowerCurrent1000) +
-                           scale(SunflowerLastYr1000) +
-                           TransectType*scale(SFBloom) +
-                           (1|Site),
-                        na.action = "na.fail",
-                       data=by.site)
+                         scale(log(Nat1000)) +
+                         scale(log(Nat350)) +
+                         scale(log(HR350)) +
+                         scale(log(HR1000)) +
+                         scale(log(SunflowerCurrent1000)) +
+                         TransectType*scale(SFBloom) +
+                         scale(FloralAbundance) +
+                         scale(FloralDiv) +
+                         scale(FloralRichness) +
+                         (1|Site),
+                     na.action = "na.fail",
+                     data=by.site)
+
 ## exclude the different gaussian decays from being included in the
 ## same model
 ms.bee.rich <- dredge(bee.rich.mod,
-   subset =  !("scale(Nat1000)" && "scale(Nat350)") &&
-            !("scale(HR350)" && "scale(HR1000)"))
+       subset =  !("scale(log(Nat1000))" && "scale(log(Nat350))") &&
+       !("scale(log(HR350))" && "scale(log(HR1000))") &&
+       !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
+       !("scale(FloralRichness)" && "scale(FloralDiv)"))
 
-subset(ms.bee.rich, delta <2)
-ma.bee.rich <- model.avg(ms.bee.rich, subset= delta < 2.2,
-                          revised.var = TRUE)
+ma.bee.rich <- model.avg(ms.bee.rich, subset= delta < 2,
+                         revised.var = TRUE)
+
+## just use the top model since no other models are withing 2 AIC
+ma.bee.rich <- get.models(ms.bee.rich, 1)[[1]]
 
 summary(ma.bee.rich)
 
@@ -76,13 +91,16 @@ summary(ma.bee.rich)
 ## parasite presence (any parasite)
 ## *************************************************************
 parasite.pres.mod <- glmer(ParasitePresence~
-                           TransectType*scale(SFBloom) +
-                           scale(TotalAbundance) +
-                            scale(Richness) +
-                           scale(r.degree) +
-                           scale(MeanITD)+
-                           Sociality +
-                           (1|Site),
+                               TransectType*scale(SFBloom) +
+                               scale(TotalAbundance) +
+                               scale(Richness) +
+                               scale(r.degree) +
+                               scale(MeanITD)+
+                               Sociality +
+                               scale(FloralAbundance) +
+                               scale(FloralDiv) +
+                               scale(FloralRichness) +
+                               (1|Site),
                            family="binomial",
                            glmerControl(optimizer="bobyqa"),
                            data=spec.wild.sub,
@@ -91,11 +109,12 @@ parasite.pres.mod <- glmer(ParasitePresence~
 ## include richness and abundaunce from the same model as they are
 ## very colinear
 ms.parasite.pres <- dredge(parasite.pres.mod,
-           subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
+            subset =  !("scale(Richness)" && "scale(TotalAbundance)") &&
+            !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
+            !("scale(FloralRichness)" && "scale(FloralDiv)"))
 
-subset(ms.parasite.pres, delta <2)
 ma.parasite.pres <- model.avg(ms.parasite.pres, subset= delta < 2,
-                          revised.var = TRUE)
+                              revised.var = TRUE)
 
 summary(ma.parasite.pres)
 
@@ -113,13 +132,16 @@ summary(ma.parasite.pres)
 ## *************************************************************
 
 parasite.rich.mod <- glmer(cbind(ParasiteRichness, PossibleParasite)~
-                           TransectType*scale(SFBloom) +
+                               TransectType*scale(SFBloom) +
                                scale(TotalAbundance) +
                                scale(Richness) +
-                           scale(r.degree) +
-                           scale(MeanITD)+
-                           Sociality +
-                           (1|Site),
+                               scale(r.degree) +
+                               scale(MeanITD)+
+                               Sociality +
+                               scale(FloralAbundance) +
+                               scale(FloralDiv) +
+                               scale(FloralRichness) +
+                               (1|Site),
                            family="binomial",
                            glmerControl(optimizer="bobyqa"),
                            data=spec.wild.sub,
@@ -128,11 +150,13 @@ parasite.rich.mod <- glmer(cbind(ParasiteRichness, PossibleParasite)~
 ## include richness and abundaunce from the same model as they are
 ## very colinear
 ms.parasite.rich <- dredge(parasite.rich.mod,
-           subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
+         subset =  !("scale(Richness)" && "scale(TotalAbundance)") &&
+            !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
+            !("scale(FloralRichness)" && "scale(FloralDiv)"))
 
-subset(ms.parasite.rich, delta <2)
+
 ma.parasite.rich <- model.avg(ms.parasite.rich, subset= delta < 2,
-                          revised.var = TRUE)
+                              revised.var = TRUE)
 
 summary(ma.parasite.rich)
 ## same issue of colinearily between degree and body size
@@ -147,51 +171,52 @@ summary(ma.parasite.rich)
 ## parasite presence honey bees
 ## *************************************************************
 
-hb <- spec[spec$GenusSpecies == "Apis mellifera",]
-hb$SFBloom <- as.numeric(hb$SFBloom)
-
 parasite.pres.mod.hb <- glmer(ParasitePresence~
-                           TransectType*scale(SFBloom) +
-                           scale(TotalAbundance) +
-                            scale(Richness) +
-                           (1|Site),
-                           family="binomial",
-                           glmerControl(optimizer="bobyqa"),
-                           data=hb,
-                           na.action = "na.fail")
+                                  TransectType*scale(SFBloom) +
+                                  scale(TotalAbundance) +
+                                  scale(Richness) +
+                                  scale(FloralAbundance) +
+                                  scale(FloralRichness) +
+                                  scale(FloralDiv) +
+                                  (1|Site),
+                              family="binomial",
+                              glmerControl(optimizer="bobyqa"),
+                              data=hb,
+                              na.action = "na.fail")
 
 ms.parasite.pres.hb <- dredge(parasite.pres.mod.hb,
-           subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
+       subset =  !("scale(Richness)" && "scale(TotalAbundance)")&&
+            !("scale(FloralRichness)" && "scale(FloralDiv)"))
 
-subset(ms.parasite.pres.hb, delta <2)
-ma.parasite.pres.hb <- model.avg(ms.parasite.pres.hb, subset= delta < 2,
-                          revised.var = TRUE)
+ma.parasite.pres.hb <- model.avg(ms.parasite.pres.hb,
+                                 subset= delta < 2,
+                                 revised.var = TRUE)
 
 summary(ma.parasite.pres.hb)
 
-## native bee abundaunce has a positive effect on honey bee parasitism
-## rates
-
-parasite.rich.mod.hb <- glmer(cbind(ParasiteRichness, PossibleParasite)~
-                           TransectType*scale(SFBloom) +
-                           scale(TotalAbundance) +
-                            scale(Richness) +
-                           (1|Site),
-                           family="binomial",
-                           glmerControl(optimizer="bobyqa"),
-                           data=hb,
-                           na.action = "na.fail")
+parasite.rich.mod.hb <- glmer(cbind(ParasiteRichness,
+                                    PossibleParasite)~
+                                  TransectType*scale(SFBloom) +
+                                  scale(TotalAbundance) +
+                                  scale(Richness) +
+                                  scale(FloralAbundance) +
+                                  scale(FloralDiv) +
+                                  scale(FloralRichness) +
+                                  (1|Site),
+                              family="binomial",
+                              glmerControl(optimizer="bobyqa"),
+                              data=hb,
+                              na.action = "na.fail")
 
 ms.parasite.rich.hb <- dredge(parasite.rich.mod.hb,
-           subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
+         subset =  !("scale(Richness)" && "scale(TotalAbundance)")&&
+            !("scale(FloralRichness)" && "scale(FloralDiv)"))
 
-subset(ms.parasite.rich.hb, delta <2)
-ma.parasite.rich.hb <- model.avg(ms.parasite.rich.hb, subset= delta < 2,
-                          revised.var = TRUE)
+ma.parasite.rich.hb <- model.avg(ms.parasite.rich.hb,
+                                 subset= delta < 2,
+                                 revised.var = TRUE)
 
 summary(ma.parasite.rich.hb)
-
-## parasite richness is - related to native bee richness
 
 save(ma.bee.abund,
      ms.bee.abund,
@@ -199,6 +224,8 @@ save(ma.bee.abund,
      ms.bee.rich,
      ma.parasite.pres,
      ms.parasite.pres,
+     ma.parasite.rich,
+     ms.parasite.rich,
      ma.parasite.rich.hb,
      ms.parasite.rich.hb,
      ma.parasite.pres.hb,
@@ -206,31 +233,3 @@ save(ma.bee.abund,
      file="saved/parMods.RData")
 
 
-
-## coeffs <- summary(ma.parasite.pres)$coefmat.subset
-## ci <- confint(ma.parasite.pres)
-
-
-## expit <- function(x) exp(x)/(1 + exp(x))
-
-## binomial.curve <- function(x, intercept, slope){
-##     y <- expit(intercept + x * slope)
-##     return(y)
-## }
-
-## plot(by.site$Parasitism ~ by.site$TotalAbundance)
-## curve(binomial.curve(x=x, intercept =
-##                        (coeffs[1,1]),
-##               slope=(coeffs[3,1])),
-##               lwd=1.5, add=TRUE)
-
-
-## plot(spec.wild$Parasitism ~ spec.wild$MeanITD)
-## curve(binomial.curve(x=x, intercept =
-##                        (coeffs[1,1]),
-##               slope=(coeffs[2,1])),
-##               lwd=1.5, add=TRUE)
-
-
-
-## get.models(ms.parasite.pres, 1)[[1]]
