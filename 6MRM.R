@@ -20,13 +20,14 @@ source("src/runMRM.R")
 ##  distance matrices for parasites, bees, plants
 ## **********************************************************
 spec.raw <- spec.raw[spec.raw$Year == "2019",]
+spec.raw.wild <- spec[spec$GenusSpecies != "Apis mellifera",]
 spec <- spec[spec$Year == "2019",]
 
 ## geo
 geo <- unique(spec[,c("Site", "Lat", "Long")])
 
 ## bees
-bee.comm <- makeCommStruct(spec.raw, "GenusSpecies")
+bee.comm <- makeCommStruct(spec.raw.wild, "GenusSpecies")
 dist.bee <- as.matrix(vegdist(bee.comm$comm,
                               "gower"))
 
@@ -73,7 +74,7 @@ parasite.long$adjSF <- spec$AdjSF[match(parasite.long$Site,
 p <- ggplot(parasite.long, aes(x=Parasite, y=Parasitism,
                                fill=adjSF)) +
   geom_boxplot()
-p + scale_fill_viridis_d() +
+p <- p + scale_fill_viridis_d() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ggsave("figures/pcas/parasitism_bySF.pdf", height=5, width=7)

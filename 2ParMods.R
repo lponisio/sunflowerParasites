@@ -16,10 +16,10 @@ ys <- c("ParasitePresence",
 if(focal.bee == "all" |focal.bee == "NotLasioMel"){
     xvars <-   c("TransectType*scale(SFBloom)",
                  "scale(TotalAbundance)",
+                 "Sociality",
                  "scale(Richness)",
                  "scale(r.degree)",
                  "scale(MeanITD)",
-                  "Sociality",
                  "scale(FloralAbundance)",
                  "scale(FloralDiv)",
                  "scale(FloralRichness)",
@@ -142,13 +142,21 @@ runParModel <- function(parasite){
 parasite.mods <- lapply(parasites, runParModel)
 names(parasite.mods) <- parasites
 
+par.sums <- lapply(parasite.mods, function(x)
+    summary(x$ma.parasite)$coefmat.subset)
+
+mapply(function(a,b)
+    write.csv(a, file=sprintf("saved/tables/%s.csv", b)),
+                 a=par.sums,
+                 b=names(par.sums))
+
 save(parasite.mods,
      file=sprintf("saved/%s_parasiteSpecific_parMods.RData",
                   focal.bee))
 
 
 ## across the entire community
-## Apicystis: degree and total abund negative relationship
+## Apicystis:
 ## Ascosphaera: total abundance negative relationship
 ## CrithidiaSpp:  degree and total abund negative relationship, solitary>social
 ## CrithidiaBombi:  total abundance negative relationship, + SF bloom

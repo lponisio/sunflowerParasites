@@ -10,18 +10,31 @@ focal.bee <- "all"
 
 source("src/initialize.R")
 
+ys <- c("ParasitePresence",
+        "cbind(ParasiteRichness, PossibleParasite)",
+        parasites)
+
+xvars <-   c("TransectType*scale(SFBloom)",
+             "scale(TotalAbundance)",
+             "scale(Richness)",
+             "scale(FloralAbundance)",
+             "scale(FloralDiv)",
+             "scale(FloralRichness)")
+
+formulas <-lapply(ys, function(y) {
+    as.formula(paste(y, "~",
+                     paste(paste(xvars,
+                                 collapse="+"),
+                           "(1|Site)", sep="+")))
+})
+
+names(formulas) <- c("Presence", "Richness", parasites)
+
 ## *************************************************************
 ## parasite presence honey bees
 ## *************************************************************
 
-parasite.pres.mod.hb <- glmer(ParasitePresence~
-                                  TransectType*scale(SFBloom) +
-                                  scale(TotalAbundance) +
-                                  scale(Richness) +
-                                  scale(FloralAbundance) +
-                                  scale(FloralRichness) +
-                                  scale(FloralDiv) +
-                                  (1|Site),
+parasite.pres.mod.hb <- glmer(formulas[[1]],
                               family="binomial",
                               glmerControl(optimizer="bobyqa"),
                               data=hb,
@@ -41,15 +54,7 @@ summary(ma.parasite.pres.hb)
 ## parasite richness honey bees
 ## *************************************************************
 
-parasite.rich.mod.hb <- glmer(cbind(ParasiteRichness,
-                                    PossibleParasite)~
-                                  TransectType*scale(SFBloom) +
-                                  scale(TotalAbundance) +
-                                  scale(Richness) +
-                                  scale(FloralAbundance) +
-                                  scale(FloralDiv) +
-                                  scale(FloralRichness) +
-                                  (1|Site),
+parasite.rich.mod.hb <- glmer(formulas[[2]],
                               family="binomial",
                               glmerControl(optimizer="bobyqa"),
                               data=hb,
@@ -87,6 +92,45 @@ top.mod.hb <- get.models(ms.parasite.pres.hb, 1)[[1]]
 summary(top.mod.hb)
 r.squaredGLMM(top.mod.hb)
 
+## *************************************************************
+## parasite specific models
+## *************************************************************
+runParModel <- function(parasite){
+    print(parasite)
+    parasite.mod <- glmer(formulas[[parasite]],
+                               family="binomial",
+                               glmerControl(optimizer="bobyqa"),
+                               data=hb,
+                               na.action = "na.fail")
+
+    ## include richness and abundaunce from the same model as they are
+    ## very colinear
+    ms.parasite <- dredge(parasite.mod,
+         subset =  !("scale(Richness)" && "scale(TotalAbundance)") &&
+         !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
+         !("scale(FloralRichness)" && "scale(FloralDiv)"))
+
+    ma.parasite <- model.avg(ms.parasite, subset= delta < 2,
+                                  revised.var = TRUE)
+
+    return(list(  ma.parasite=  ma.parasite,
+                ms.parasite=ms.parasite))
+}
+
+parasite.mods <- lapply(parasites, runParModel)
+names(parasite.mods) <- parasites
+
+par.sums <- lapply(parasite.mods, function(x)
+    summary(x$ma.parasite)$coefmat.subset)
+
+mapply(function(a,b)
+    write.csv(a, file=sprintf("saved/tables/hb_%s.csv", b)),
+                 a=par.sums,
+                 b=names(par.sums))
+
+save(parasite.mods,
+     file=sprintf("saved/HB_%s_parasiteSpecific_parMods.RData",
+                  focal.bee))
 
 ## dd.hb.rich <- expand.grid(FloralRichness=seq(
 ##                             from= min(by.site$FloralRichness, na.rm=TRUE),

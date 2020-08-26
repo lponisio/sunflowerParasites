@@ -119,7 +119,7 @@ plotCommDistbyGroup  <- function(dist.mat, comm,
 
 plotParasiteMap <- function(){
     colfunc <- colorRampPalette(c("white", "red"))
-    par(oma=c(6,4,3,2), mar=c(1,2,2,1),
+    par(oma=c(8,4,3,2), mar=c(1,2,2,1),
         mgp=c(1.5,0.5,0))
     heatmap.2(parasite.comms[[parasite]],
               trace="none",
