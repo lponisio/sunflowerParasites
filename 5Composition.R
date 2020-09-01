@@ -1,106 +1,138 @@
-setwd("~/Dropbox/sunflower")
-setwd("analysis/parasiteCommunity")
+## setwd('~/Dropbox/sunflower')
 rm(list=ls())
-library(lme4)
-library(lmerTest)
-library(car)
-library(MuMIn)
-library(ggplot2)
+setwd('analysis/parasiteCommunity')
+library(vegan)
+library(bipartite)
+library(tidyr)
 library(dplyr)
+library(ecodist)
+library(fields)
+library(viridis)
+library(ggplot2)
 library(gplots)
-library(pals)
 
+source("src/commPrep.R")
+source("src/plotPcoa.R")
 source("src/initialize.R")
+source("src/runMRM.R")
 
-## abundance through time
-sp.by.site.wild <- sp.by.site.wild[sp.by.site.wild$Year == 2019,]
+## **********************************************************
+##  distance matrices for parasites, bees, plants
+## **********************************************************
+spec.raw <- spec.raw[spec.raw$Year == "2019",]
+spec.raw.wild <- spec[spec$GenusSpecies != "Apis mellifera",]
+spec <- spec[spec$Year == "2019",]
+
+## geo
+geo <- unique(spec[,c("Site", "Lat", "Long")])
+
+## bees
+bee.comm <- makeCommStruct(spec.raw.wild, "GenusSpecies")
+dist.bee <- as.matrix(vegdist(bee.comm$comm,
+                              "gower"))
+
+## plants
+plant.comm <- makeCommStruct(spec.raw, "PlantGenusSpecies")
+dist.plant <- as.matrix(vegdist(plant.comm$comm,
+                                "gower"))
+
+## parasites
+parasite.comm <- makeStructParasite(spec, parasites)
+dist.parasite <- as.matrix(vegdist(parasite.comm$comm,
+                                   "gower"))
+
+## geographic distance
+dist.geo <- rdist.earth(geo[,c("Long", "Lat")])
+rownames(dist.geo) <- colnames(dist.geo)  <- geo$Site
+
+## **********************************************************
+##  Perm anova
+## **********************************************************
+## Permutational Multivariate Analysis of Variance Using Distance
+## Matrices
+
+plotCommDistbyGroup(dist.parasite, parasite.comm,
+                    "adjsf", "parasite")
+
+plotCommDistbyGroup(dist.bee, bee.comm,
+                    "adjsf", "bees")
+
+## not sure if this is necessary given it is rather obvious
+plotCommDistbyGroup(dist.plant, plant.comm,
+                    "adjsf", "plants")
+
+## make a long table to plot parasitism by site type,
+## parasite species
+parasite.pre.long <- as.data.frame(parasite.comm$comm)
+parasite.pre.long$Site <- rownames(parasite.pre.long)
+parasite.long <- pivot_longer(parasite.pre.long, cols=parasites,
+                              names_to = "Parasite",
+                              values_to = "Parasitism")
+parasite.long$adjSF <- spec$AdjSF[match(parasite.long$Site,
+                                              spec$Site)]
+
+p <- ggplot(parasite.long, aes(x=Parasite, y=Parasitism,
+                               fill=adjSF)) +
+  geom_boxplot()
+p <- p + scale_fill_viridis_d() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave("figures/pcas/parasitism_bySF.pdf", height=5, width=7)
+
+## **********************************************************
+##  MRM
+## **********************************************************
+## multiple regression on distance matrices
+dist.bee <- dist.bee[rownames(dist.geo), rownames(dist.geo)]
+dist.plant <- dist.plant[rownames(dist.geo), rownames(dist.geo)]
+dist.parasite <- dist.parasite[rownames(dist.geo), rownames(dist.geo)]
+
+MRM(as.dist(dist.parasite) ~ as.dist(dist.bee) +
+        as.dist(dist.plant) + as.dist(dist.geo),  nperm=10^4)
+
+## within each site type
+site.types <- unique(spec[,c("Site", "SiteType")])
+hr <- site.types$Site[site.types$SiteType == "HR" |
+                      site.types$SiteType == "HR + SF"]
+
+wm <- site.types$Site[site.types$SiteType == "WM" |
+                      site.types$SiteType == "WM + SF"]
+
+sf <- site.types$Site[site.types$SiteType == "HR + SF" |
+                      site.types$SiteType == "WM + SF"]
+
+runMantelSiteType(sf,
+                  dis.bee, dist.plant,
+                  dist.geo, dist.parasite)
 
 
-plotAbund <- function(){
-    spp <- sort(unique(sp.by.site.wild$GenusSpecies))
-    cols <- polychrome(length(unique(spp)))
-    names(cols) <- sort(unique(spp))
-
-    layout(matrix(1:2, ncol=1),
-           heights=c(3, 8))
-        par(oma=c(4,4,1,2), mar=c(1,1,1,1),
-            mgp=c(1.5,0.5,0))
-
-    plot(NA, ylim=c(0,1), xlim=c(0,1),
-         xaxt="n",
-         yaxt="n",
-         bty="n",
-         ylab="",
-         xlab="")
-
-    legend("center", legend=spp, col=cols, pch=16, ncol=3, cex=0.6,
-           bty="n")
+runMantelSiteType(wm,
+                  dis.bee, dist.plant,
+                  dist.geo, dist.parasite)
 
 
-    plot(NA, xlim=range(sp.by.site.wild$Doy, na.rm=TRUE),
-         ylim=range(log(sp.by.site.wild$Abundance),
-                    na.rm=TRUE),
-         xlab="",
-         ylab="",
-         las=1)
+runMantelSiteType(hr,
+                  dis.bee, dist.plant,
+                  dist.geo, dist.parasite)
 
-        mtext("Day of the year", 1, line=2)
-         mtext("Abundance (log)", 2, line=2)
 
-    for(sp in unique(sp.by.site.wild$GenusSpecies)){
-        this.sp <- sp.by.site.wild[sp.by.site.wild$GenusSpecies == sp,]
-        points(log(this.sp$Abundance) ~ this.sp$Doy,
-               col=cols[sp], pch=16)
 
-    }
+## **********************************************************
+##  parasitism by sp, site
+## **********************************************************
 
+sp.n <- c(table(spec$GenusSpecies))
+sp.n <- sp.n[sp.n >=4]
+
+spec <- spec[spec$GenusSpecies %in% names(sp.n),]
+
+## heat maps of # of infected individuals
+
+parasite.comms <- lapply(parasites, getParComm)
+names(parasite.comms) <- parasites
+
+for(parasite in parasites){
+    pdf.f(plotParasiteMap,
+          file=sprintf("figures/heatmaps/%s.pdf", parasite),
+          width=8, height=7)
 }
-
-pdf.f(plotAbund, file="figures/AbundDoy.pdf",
-      height=8, width=7)
-
-
-sp.prop <- sp.by.site.wild  %>%
-  group_by(Site, Doy, GenusSpecies) %>%
-  summarise(n = sum(Abundance)) %>%
-  mutate(Proportion = n / sum(n))
-
-plotPorpAbundSite <- function(){
-    sites <- unique(sp.prop$Site)
-    cols <- polychrome(length(unique(sp.prop$GenusSpecies)))
-    names(cols) <- unique(sp.prop$GenusSpecies)
-
-    panels <- vector("list", length(sites))
-
-    for(i in 1:length(sites)){
-        ## these.cols <-
-        ##     cols[unique(sp.prop$GenusSpecies[sp.prop$Site== sites[i]])]
-        panels[[i]] <-  ggplot(sp.prop[sp.prop$Site== sites[i],],
-                               aes(x=Doy, y=Proportion,
-                                   fill=GenusSpecies)) +
-                               labs(main=sites[i]) +
-            theme(legend.position = "none") +
-            scale_fill_manual(values = cols) +
-        geom_area(alpha=0.6 , size=1, colour="black")
-    }
-
-    do.call(grid.arrange, panels)
-
-}
-
-pdf.f(plotPorpAbundSite, file="figures/PropAbund.pdf",
-      height=11, width=8.5)
-
-
-sp.prop.all.sites <- sp.by.site.wild  %>%
-    group_by(Doy, GenusSpecies) %>%
-    summarise(n = sum(Abundance)) %>%
-    mutate(Proportion = n / sum(n))
-
-cols <- polychrome(length(unique(sp.prop.all.sites$GenusSpecies)))
-names(cols) <- unique(sp.prop.all.sites$GenusSpecies)
-ggplot(sp.prop.all.sites,
-       aes(x=Doy, y=Proportion,
-           fill=GenusSpecies)) +
-    ## scale_fill_manual(values = cols) +
-    geom_area(alpha=0.6 , size=1, colour="black")

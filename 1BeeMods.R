@@ -31,6 +31,8 @@ bee.abund.mod <- glmer.nb(TotalAbundance~
                               scale(log(HR1000)) +
                               scale(log(SunflowerCurrent1000)) +
                               scale(log(SunflowerLastYr1000)) +
+                              scale(log(SunflowerCurrent350)) +
+                              scale(log(SunflowerLastYr350)) +
                               TransectType*scale(SFBloom) +
                               scale(FloralAbundance) +
                               scale(FloralRichness) +
@@ -45,9 +47,14 @@ ms.bee.abund <- dredge(bee.abund.mod,
                        subset =
                 !("scale(log(Nat1000))" && "scale(log(Nat350))") &&
                 !("scale(log(HR350))" && "scale(log(HR1000))") &&
+                !("scale(log(SunflowerCurrent1000))" &&
+                  "scale(log(SunflowerCurrent350))") &&
+                  !("scale(log(SunflowerLastYr1000))" &&
+                  "scale(log(SunflowerLastYr350))") &&
                 !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
                 !("scale(FloralRichness)" && "scale(FloralDiv)"))
 
+## model average within 2 AICc of the min
 ma.bee.abund <- model.avg(ms.bee.abund, subset= delta < 2,
                           revised.var = TRUE)
 

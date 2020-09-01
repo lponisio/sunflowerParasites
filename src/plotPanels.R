@@ -147,7 +147,7 @@ plotSigModelsBeeAbund <- function(){
                factor.var=unique(by.site$TransectType),
                factor.var.col="TransectType",
                cols.points ="black")
-    mtext("Sunflower proximity", 1, line=3)
+    mtext("Sunflower weighted area", 1, line=3)
 
         legend("topright",
            legend=c("Hedgerow", "Sunflower", "Weedy margin"),
