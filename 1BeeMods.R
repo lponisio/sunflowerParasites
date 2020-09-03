@@ -15,29 +15,41 @@ print(focal.bee)
 ## cor.test(by.site$FloralRichness, by.site$FloralAbundance)
 ## cor.test(by.site$FloralDiv, by.site$FloralAbundance)
 ## cor.test(by.site$FloralDiv, by.site$FloralRichness)
-## SHUCKS!
 
 ## *************************************************************
 ## model selection: bee abundunace
 ## *************************************************************
 
+ys <- c("TotalAbundance",
+        "Richness")
+
+xvars <-      c("scale(Doy)*TransectType",
+                "scale(I(Doy^2))*TransectType",
+                "scale(log(Nat350))",
+                "scale(log(Nat1000))",
+                "scale(log(HR350))",
+                "scale(log(HR1000))",
+                "scale(log(SunflowerCurrent1000))",
+                "scale(log(SunflowerLastYr1000))",
+                "scale(log(SunflowerCurrent350))",
+                "scale(log(SunflowerLastYr350))",
+                "TransectType*scale(SFBloom)",
+                "scale(FloralAbundance)",
+                "scale(FloralRichness)",
+                "scale(FloralDiv)",
+                "(1|Site)")
+
+
+formulas <-lapply(ys, function(y) {
+        as.formula(paste(y, "~",
+                         paste(paste(xvars,
+                                     collapse="+"))))
+})
+
+names(formulas) <- ys
+
 ## full model
-bee.abund.mod <- glmer.nb(TotalAbundance~
-                              scale(Doy)*TransectType+
-                              scale(I(Doy^2))*TransectType+
-                              scale(log(Nat350)) +
-                              scale(log(Nat1000)) +
-                              scale(log(HR350)) +
-                              scale(log(HR1000)) +
-                              scale(log(SunflowerCurrent1000)) +
-                              scale(log(SunflowerLastYr1000)) +
-                              scale(log(SunflowerCurrent350)) +
-                              scale(log(SunflowerLastYr350)) +
-                              TransectType*scale(SFBloom) +
-                              scale(FloralAbundance) +
-                              scale(FloralRichness) +
-                              scale(FloralDiv) +
-                              (1|Site),
+bee.abund.mod <- glmer.nb(formulas[["TotalAbundance"]],
                           na.action = "na.fail",
                           data=by.site)
 
@@ -58,22 +70,8 @@ ms.bee.abund <- dredge(bee.abund.mod,
 ma.bee.abund <- model.avg(ms.bee.abund, subset= delta < 2,
                           revised.var = TRUE)
 
-
 ##richness
-bee.rich.mod <- lmer(Richness~
-                              scale(Doy)*TransectType+
-                              scale(I(Doy^2))*TransectType+
-                              scale(log(Nat350)) +
-                              scale(log(Nat1000)) +
-                              scale(log(HR350)) +
-                              scale(log(HR1000)) +
-                              scale(log(SunflowerCurrent1000)) +
-                              scale(log(SunflowerLastYr1000)) +
-                              TransectType*scale(SFBloom) +
-                              scale(FloralAbundance) +
-                              scale(FloralRichness) +
-                              scale(FloralDiv) +
-                              (1|Site),
+bee.rich.mod <- lmer(formulas[["Richness"]],
                           na.action = "na.fail",
                           data=by.site)
 
@@ -81,14 +79,17 @@ bee.rich.mod <- lmer(Richness~
 ## same model
 ms.bee.rich <- dredge(bee.rich.mod,
                        subset =
-                !("scale(log(Nat1000))" && "scale(log(Nat350))") &&
+                 !("scale(log(Nat1000))" && "scale(log(Nat350))") &&
                 !("scale(log(HR350))" && "scale(log(HR1000))") &&
+                !("scale(log(SunflowerCurrent1000))" &&
+                  "scale(log(SunflowerCurrent350))") &&
+                  !("scale(log(SunflowerLastYr1000))" &&
+                  "scale(log(SunflowerLastYr350))") &&
                 !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
                 !("scale(FloralRichness)" && "scale(FloralDiv)"))
 
 ma.bee.rich <- model.avg(ms.bee.rich, subset= delta < 2,
                           revised.var = TRUE)
-
 
 save(ma.bee.abund,
      ms.bee.abund,
