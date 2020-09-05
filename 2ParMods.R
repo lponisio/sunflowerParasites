@@ -23,7 +23,6 @@ if(focal.bee == "all" |focal.bee == "NotLasioMel"){
                  "scale(FloralAbundance)",
                  "scale(FloralDiv)",
                  "scale(FloralRichness)",
-                 "(1|Site)",
                  "(1|GenusSpecies)",
                  "(1|Genus)")
 } else{

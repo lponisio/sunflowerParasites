@@ -48,7 +48,8 @@ formulas <-lapply(ys, function(y) {
 
 names(formulas) <- ys
 
-## full model
+## *********************************************************************
+## full model of wild bee abundance
 bee.abund.mod <- glmer.nb(formulas[["TotalAbundance"]],
                           na.action = "na.fail",
                           data=by.site)
@@ -70,7 +71,8 @@ ms.bee.abund <- dredge(bee.abund.mod,
 ma.bee.abund <- model.avg(ms.bee.abund, subset= delta < 2,
                           revised.var = TRUE)
 
-##richness
+## *********************************************************************
+## full model of wild bee richness
 bee.rich.mod <- lmer(formulas[["Richness"]],
                           na.action = "na.fail",
                           data=by.site)
