@@ -18,8 +18,7 @@ xvars <-   c("TransectType*scale(SFBloom)",
              "scale(TotalAbundance)",
              "scale(Richness)",
              "scale(FloralAbundance)",
-             "scale(FloralDiv)",
-             "scale(FloralRichness)")
+             "scale(FloralDiv)")
 
 formulas <-lapply(ys, function(y) {
     as.formula(paste(y, "~",
@@ -41,8 +40,7 @@ parasite.pres.mod.hb <- glmer(formulas[[1]],
                               na.action = "na.fail")
 
 ms.parasite.pres.hb <- dredge(parasite.pres.mod.hb,
-       subset =  !("scale(Richness)" && "scale(TotalAbundance)")&&
-            !("scale(FloralRichness)" && "scale(FloralDiv)"))
+       subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
 
 ma.parasite.pres.hb <- model.avg(ms.parasite.pres.hb,
                                  subset= delta < 2,
@@ -61,8 +59,7 @@ parasite.rich.mod.hb <- glmer(formulas[[2]],
                               na.action = "na.fail")
 
 ms.parasite.rich.hb <- dredge(parasite.rich.mod.hb,
-         subset =  !("scale(Richness)" && "scale(TotalAbundance)")&&
-            !("scale(FloralRichness)" && "scale(FloralDiv)"))
+         subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
 
 ma.parasite.rich.hb <- model.avg(ms.parasite.rich.hb,
                                  subset= delta < 2,
@@ -106,9 +103,7 @@ runParModel <- function(parasite){
     ## include richness and abundaunce from the same model as they are
     ## very colinear
     ms.parasite <- dredge(parasite.mod,
-         subset =  !("scale(Richness)" && "scale(TotalAbundance)") &&
-         !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
-         !("scale(FloralRichness)" && "scale(FloralDiv)"))
+         subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
 
     ma.parasite <- model.avg(ms.parasite, subset= delta < 2,
                                   revised.var = TRUE)

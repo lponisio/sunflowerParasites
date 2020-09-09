@@ -25,7 +25,7 @@ sp.by.site$Sociality <- factor(sp.by.site$Sociality,
 by.site$TransectType <- factor(by.site$TransectType,
                                levels=c("HR", "SF", "WM"))
 
-cols.sp <- polychrome(length(unique(sp.by.site$GenusSpecies)))
+cols.sp <- viridis(length(unique(sp.by.site$GenusSpecies)))
 names(cols.sp) <- sort(unique(sp.by.site$GenusSpecies))
 
 ## ************************************************************
@@ -49,7 +49,7 @@ pdf.f(plotDiagAbund,
 height=7, width=3)
 
 
-cols.var <- add.alpha(viridis(3), 0.5)
+cols.var <- add.alpha(viridis(3), 0.5)[c(1,3,2)]
 names(cols.var) <- levels(by.site$TransectType)
 
 ## day of the year
@@ -153,10 +153,7 @@ summary(top.mod)
 r.squaredGLMM(top.mod)
 vif(top.mod)
 
-## cols.var <- add.alpha(viridis(2), 0.5)
-## names(cols.var) <- levels(sp.by.site$Sociality)
-
-cols.var <- add.alpha(viridis(1), 0.5)
+cols.var <- add.alpha("grey", 0.5)
 names(cols.var) <- "all"
 
 by.site1 <- sp.by.site
@@ -232,6 +229,6 @@ pdf.f(plotSigModelsParPresSp,
 plotDiagPres <- function(){
     plotDiagnostics(top.mod, spec.wild.sub)
 }
-pdf.f(plotDiag,
+pdf.f(plotDiagPres,
       file=file.path('figures/diagnostics/parasitePres.pdf'),
       height=7, width=3)

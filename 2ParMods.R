@@ -5,7 +5,6 @@ library(lme4)
 library(lmerTest)
 library(car)
 library(MuMIn)
-
 source("src/initialize.R")
 print(focal.bee)
 
@@ -14,7 +13,8 @@ ys <- c("ParasitePresence",
         parasites)
 
 if(focal.bee == "all" |focal.bee == "NotLasioMel"){
-    xvars <-   c("TransectType*scale(SFBloom)",
+    xvars <-   c("TransectType",
+                 "SFBloom",
                  "scale(TotalAbundance)",
                  "Sociality",
                  "scale(Richness)",
@@ -22,18 +22,17 @@ if(focal.bee == "all" |focal.bee == "NotLasioMel"){
                  "scale(MeanITD)",
                  "scale(FloralAbundance)",
                  "scale(FloralDiv)",
-                 "scale(FloralRichness)",
                  "(1|GenusSpecies)",
                  "(1|Genus)")
+
 } else{
     ## don't include traits in species specific models, add sp
     ## abundance
-    xvars <-   c("TransectType*scale(SFBloom)",
+    xvars <-   c("TransectType", "scale(SFBloom)",
                  "scale(TotalAbundance)",
                  "scale(Richness)",
                  "scale(FloralAbundance)",
-                 "scale(FloralDiv)",
-                 "scale(FloralRichness)")
+                 "scale(FloralDiv)")
 }
 
 formulas <-lapply(ys, function(y) {
@@ -55,12 +54,12 @@ parasite.pres.mod <- glmer(formulas[["Presence"]],
                            data=spec.wild.sub,
                            na.action = "na.fail")
 
+vif(parasite.pres.mod)
+
 ## include richness and abundaunce from the same model as they are
 ## very colinear
 ms.parasite.pres <- dredge(parasite.pres.mod,
-            subset =  !("scale(Richness)" && "scale(TotalAbundance)") &&
-            !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
-            !("scale(FloralRichness)" && "scale(FloralDiv)"))
+            subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
 
 ma.parasite.pres <- model.avg(ms.parasite.pres, subset= delta < 2,
                               revised.var = TRUE)
@@ -89,9 +88,7 @@ parasite.rich.mod <- glmer(formulas[["Richness"]],
 ## include richness and abundaunce from the same model as they are
 ## very colinear
 ms.parasite.rich <- dredge(parasite.rich.mod,
-         subset =  !("scale(Richness)" && "scale(TotalAbundance)") &&
-            !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
-            !("scale(FloralRichness)" && "scale(FloralDiv)"))
+         subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
 
 
 ma.parasite.rich <- model.avg(ms.parasite.rich, subset= delta < 2,
@@ -103,6 +100,17 @@ summary(ma.parasite.rich)
 ## the number of  parasites  in generalist bees < specialist bees
 ## large bees > small bees
 ## higher abundaunce lowers parasite richness, suggesting dilution
+
+
+
+mapply(function(x, y)
+    write.csv(x,
+              file=sprintf("saved/tables/parasiteMod_%s.csv",
+                           y)),
+    x=list(summary(ma.parasite.pres)$coefmat.subset,
+           summary(ma.parasite.rich)$coefmat.subset),
+    y=ys[1:2]
+    )
 
 
 save(ma.parasite.pres,
@@ -128,9 +136,7 @@ runParModel <- function(parasite){
     ## include richness and abundaunce from the same model as they are
     ## very colinear
     ms.parasite <- dredge(parasite.mod,
-         subset =  !("scale(Richness)" && "scale(TotalAbundance)") &&
-         !("scale(FloralAbundance)" && "scale(FloralRichness)")&&
-         !("scale(FloralRichness)" && "scale(FloralDiv)"))
+         subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
 
     ma.parasite <- model.avg(ms.parasite, subset= delta < 2,
                                   revised.var = TRUE)
