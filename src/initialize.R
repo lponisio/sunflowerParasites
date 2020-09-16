@@ -17,9 +17,6 @@ parasites <- c("Apicystis", "Ascosphaera", "CrithidiaSpp",
                "CrithidiaBombi", "CrithidiaExpoeki",
                "NosemaCeranae", "NosemaBombi" )
 
-## not.path.screen <- apply(spec[, parasites], 1,
-##                          function(x) all(is.na(x)))
-
 spec <- spec[spec$Apidae == 1,]
 
 ## drop managed bees

@@ -49,7 +49,6 @@ bee.abund.mod <- glmer.nb(formulas[["TotalAbundance"]],
                           data=by.site)
 
 vif(bee.abund.mod)
-
 ## exclude the different gaussian decays from being included in the
 ## same model
 ms.bee.abund <- dredge(bee.abund.mod,
@@ -60,17 +59,14 @@ ms.bee.abund <- dredge(bee.abund.mod,
                   "scale(log(SunflowerCurrent350))") &&
                   !("scale(log(SunflowerLastYr1000))" &&
                     "scale(log(SunflowerLastYr350))"))
-
 ## model average within 2 AICc of the min
 ma.bee.abund <- model.avg(ms.bee.abund, subset= delta < 2,
                           revised.var = TRUE)
-
 ## *********************************************************************
 ## full model of wild bee richness
 bee.rich.mod <- lmer(formulas[["Richness"]],
                           na.action = "na.fail",
                           data=by.site)
-
 ## exclude the different gaussian decays from being included in the
 ## same model
 ms.bee.rich <- dredge(bee.rich.mod,
@@ -81,7 +77,6 @@ ms.bee.rich <- dredge(bee.rich.mod,
                   "scale(log(SunflowerCurrent350))") &&
                   !("scale(log(SunflowerLastYr1000))" &&
                   "scale(log(SunflowerLastYr350))"))
-
 ma.bee.rich <- model.avg(ms.bee.rich, subset= delta < 2,
                           revised.var = TRUE)
 

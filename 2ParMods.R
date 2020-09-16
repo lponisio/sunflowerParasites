@@ -56,6 +56,7 @@ parasite.pres.mod <- glmer(formulas[["Presence"]],
 
 vif(parasite.pres.mod)
 
+
 ## include richness and abundaunce from the same model as they are
 ## very colinear
 ms.parasite.pres <- dredge(parasite.pres.mod,
