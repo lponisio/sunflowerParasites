@@ -112,6 +112,16 @@ mapply(function(x, y)
     y=ys[1:2]
     )
 
+mapply(function(x, y)
+    write.table(x,
+              file=sprintf("saved/tables/parasiteMod_%s.txt",
+                           y), sep="&"),
+    x=list(round(summary(ma.parasite.pres)$coefmat.subset, 3),
+           round(summary(ma.parasite.rich)$coefmat.subset, 3)),
+    y=ys[1:2]
+    )
+
+
 
 save(ma.parasite.pres,
      ms.parasite.pres,
@@ -149,12 +159,18 @@ parasite.mods <- lapply(parasites, runParModel)
 names(parasite.mods) <- parasites
 
 par.sums <- lapply(parasite.mods, function(x)
-    summary(x$ma.parasite)$coefmat.subset)
+    round(summary(x$ma.parasite)$coefmat.subset ,2))
 
 mapply(function(a,b)
     write.csv(a, file=sprintf("saved/tables/%s.csv", b)),
                  a=par.sums,
+    b=names(par.sums))
+
+mapply(function(a,b)
+    write.table(a, sep="&",  file=sprintf("saved/tables/%s.txt", b)),
+                 a=par.sums,
                  b=names(par.sums))
+
 
 save(parasite.mods,
      file=sprintf("saved/%s_parasiteSpecific_parMods.RData",

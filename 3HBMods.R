@@ -116,12 +116,18 @@ parasite.mods <- lapply(parasites, runParModel)
 names(parasite.mods) <- parasites
 
 par.sums <- lapply(parasite.mods, function(x)
-    summary(x$ma.parasite)$coefmat.subset)
+    round(summary(x$ma.parasite)$coefmat.subset, 2))
 
 mapply(function(a,b)
     write.csv(a, file=sprintf("saved/tables/hb_%s.csv", b)),
                  a=par.sums,
                  b=names(par.sums))
+
+mapply(function(a,b)
+    write.table(a, sep="&", file=sprintf("saved/tables/hb_%s.txt", b)),
+                 a=par.sums,
+                 b=names(par.sums))
+
 
 save(parasite.mods,
      file=sprintf("saved/HB_%s_parasiteSpecific_parMods.RData",

@@ -96,6 +96,15 @@ mapply(function(x, y)
     y=ys
     )
 
+mapply(function(x, y)
+    write.table(x,
+              file=sprintf("saved/tables/beeMod_%s.txt",
+                           y), sep="&"),
+    x=list(round(summary(ma.bee.abund)$coefmat.subset, 3),
+           round(summary(ma.bee.rich)$coefmat.subset, 3)),
+    y=ys
+    )
+
 save(ma.bee.abund,
      ms.bee.abund,
      ma.bee.rich,

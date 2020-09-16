@@ -232,3 +232,27 @@ plotDiagPres <- function(){
 pdf.f(plotDiagPres,
       file=file.path('figures/diagnostics/parasitePres.pdf'),
       height=7, width=3)
+
+
+
+## ************************************************************
+## Floral div historgrams
+## ************************************************************
+
+pltfloralDiv <- ggplot(by.site, aes(FloralDiv),
+                            fill = as.factor(AdjHR)) +
+    geom_histogram(alpha = 0.5,
+                   position = 'identity') +
+    labs(fill = "Hedgerow") +
+    ylab("Count") +
+    theme(legend.position="top")+
+        scale_fill_brewer(palette="Dark2") +
+
+    geom_vline(aes(xintercept =
+                       mean(FloralDiv[AdjHR == "HR"]),
+                   col = AdjHR=="HR"), show.legend = FALSE) +
+    geom_vline(aes(xintercept =
+                       mean(FloralDiv[AdjHR =="no HR"]),
+                   col = AdjHR =="no HR"), show.legend = FALSE)
+
+ggsave("figures/floralDivHist", width = 4, height = 4)
