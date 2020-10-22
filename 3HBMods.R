@@ -81,7 +81,6 @@ source("src/CIplotting.R")
 source("src/diagnostics.R")
 library(viridis)
 library(boot)
-library(pals)
 
 ## Total abundance
 summary(ma.parasite.pres.hb)
@@ -114,47 +113,19 @@ runParModel <- function(parasite){
 
 parasite.mods <- lapply(parasites, runParModel)
 names(parasite.mods) <- parasites
-
-par.sums <- lapply(parasite.mods, function(x)
-    round(summary(x$ma.parasite)$coefmat.subset, 2))
-
-mapply(function(a,b)
-    write.csv(a, file=sprintf("saved/tables/hb_%s.csv", b)),
-                 a=par.sums,
-                 b=names(par.sums))
-
-mapply(function(a,b)
-    write.table(a, sep="&", file=sprintf("saved/tables/hb_%s.txt", b)),
-                 a=par.sums,
-                 b=names(par.sums))
+par.sums <- lapply(parasite.mods,
+                   function(x) sumMSdredge(x$ma.parasite))
 
 
 save(parasite.mods,
      file=sprintf("saved/HB_%s_parasiteSpecific_parMods.RData",
                   focal.bee))
 
-## dd.hb.rich <- expand.grid(FloralRichness=seq(
-##                             from= min(by.site$FloralRichness, na.rm=TRUE),
-##                             to= max(by.site$FloralRichness, na.rm=TRUE),
-##                             length=20),
-##                         ParasitePresence=0)
 
-## hb.rich.pi <- predict.int(top.mod.hb,
-##                         dd.hb.rich,
-##                         "ParasitePresence",
-##                         "binomial")
+mapply(function(a,b){
+    write.csv(a, file=sprintf("saved/tables/HB_%s.csv", b))
+    write.table(a, sep="&",  file=sprintf("saved/tables/HB_%s.txt", b))
+   },
+                 a=par.sums,
+    b=names(par.sums))
 
-## by.site2 <- by.site
-## colnames(by.site2)[colnames(by.site2) == "ParasitePresence"] <-
-##     "ParasitePresence1"
-
-## colnames(by.site2)[colnames(by.site2) == "HBParasitism"] <-
-##     "ParasitePresence"
-
-## cols.var <- add.alpha("goldenrod3", 0.5)
-## names(cols.var) <- "all"
-
-## ## sig only modelsx
-## pdf.f(plotSigModelsHBPres,
-##       file="figures/HBParasitism.pdf",
-##       height=5, width=6)

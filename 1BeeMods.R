@@ -82,23 +82,12 @@ ma.bee.rich <- model.avg(ms.bee.rich, subset= delta < 2,
 
 
 
-mapply(function(x, y)
-    write.csv(x,
-              file=sprintf("saved/tables/beeMod_%s.csv",
-                           y)),
-    x=list(summary(ma.bee.abund)$coefmat.subset,
-           summary(ma.bee.rich)$coefmat.subset),
-    y=ys
-    )
 
-mapply(function(x, y)
-    write.table(x,
-              file=sprintf("saved/tables/beeMod_%s.txt",
-                           y), sep="&"),
-    x=list(round(summary(ma.bee.abund)$coefmat.subset, 3),
-           round(summary(ma.bee.rich)$coefmat.subset, 3)),
-    y=ys
-    )
+mods <- list(ma.bee.abund,
+             ma.bee.rich)
+coeffs <- lapply(mods, sumMSdredge)
+
+
 
 save(ma.bee.abund,
      ms.bee.abund,
@@ -106,3 +95,16 @@ save(ma.bee.abund,
      ms.bee.rich,
      file=sprintf("saved/%s_beeMods.RData",
                   gsub(" ", "", focal.bee)))
+
+
+mapply(function(x, y){
+    write.csv(x,
+              file=sprintf("saved/tables/beeMods_%s.csv",
+                           y))
+      write.table(x,
+              file=sprintf("saved/tables/beeMods_%s.txt",
+                           y), sep="&")
+    },
+    x=coeffs,
+    y=ys[1:2]
+)

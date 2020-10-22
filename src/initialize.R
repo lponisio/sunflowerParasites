@@ -3,6 +3,7 @@ by.site <- read.csv("../../data/bySite.csv")
 sp.by.site <- read.csv("../../data/SpbySite.csv")
 
 source("src/misc.R")
+source("src/calcCoeffTable.R")
 
 args <- commandArgs(trailingOnly=TRUE)
 

@@ -12,6 +12,7 @@ library(lme4)
 library(boot)
 library(pals)
 library(car)
+library(ggplot2)
 
 source('src/initialize.R')
 print(focal.bee)
@@ -21,6 +22,8 @@ sp.by.site <- read.csv("~/Dropbox/sunflower/data/SpbySite.csv")
 sp.by.site <- sp.by.site[!is.na(sp.by.site$MeanITD),]
 sp.by.site$Sociality <- factor(sp.by.site$Sociality,
                                levels=c("social", "solitary"))
+
+sp.by.site <- sp.by.site[sp.by.site$Year == "2019",]
 
 by.site$TransectType <- factor(by.site$TransectType,
                                levels=c("HR", "SF", "WM"))
@@ -102,7 +105,7 @@ sflyrprox.pi <- predict.int(top.mod.abund,
 ## sig only models
 pdf.f(plotSigModelsBeeAbund,
       file=sprintf("figures/mods/%s_beeAbund.pdf", focal.bee),
-      height=5, width=15)
+      height=4, width=11)
 
 ## ************************************************************
 ## bee richness models
@@ -166,7 +169,6 @@ dd.abund <- expand.grid(TotalAbundance=seq(
                             to= max(sp.by.site$TotalAbundance),
                             length=20),
                         MeanITD=mean(sp.by.site$MeanITD),
-                        FloralDiv=mean(sp.by.site$FloralDiv, na.rm=TRUE),
                         FloralAbundance=mean(sp.by.site$FloralAbundance,
                                              na.rm=TRUE),
                         cats="all",
@@ -178,14 +180,12 @@ abund.pi <- predict.int(top.mod,
                         "binomial")
 
 ## floral diversity
-dd.bloom <- expand.grid(FloralDiv=seq(
-                            from= min(sp.by.site$FloralDiv, na.rm=TRUE),
-                            to= max(sp.by.site$FloralDiv, na.rm=TRUE),
+dd.bloom <- expand.grid(FloralAbundance=seq(
+                            from= min(sp.by.site$FloralAbundance, na.rm=TRUE),
+                            to= max(sp.by.site$FloralAbundance, na.rm=TRUE),
                             length=20),
                         TotalAbundance=mean(sp.by.site$TotalAbundance),
                         MeanITD=mean(sp.by.site$MeanITD),
-                        FloralAbundance=mean(sp.by.site$FloralAbundance,
-                                             na.rm=TRUE),
                           cats="all",
                         ParasitePresence=0)
 
@@ -205,7 +205,6 @@ dd.itd <- expand.grid(MeanITD=seq(
                       FloralAbundance=mean(sp.by.site$FloralAbundance,
                                            na.rm=TRUE),
                       cats="all",
-                      FloralDiv=mean(sp.by.site$FloralDiv, na.rm=TRUE),
                       ParasitePresence=0)
 
 itd.pi <- predict.int(top.mod,
@@ -216,7 +215,7 @@ itd.pi <- predict.int(top.mod,
 ## sig only models
 pdf.f(plotSigModelsParPresSite,
       file=sprintf("figures/mods/%s_wildParasitismSite.pdf", focal.bee),
-      height=5, width=10)
+      height=5, width=12)
 
 pdf.f(plotSigModelsParPresSp,
       file=sprintf("figures/mods/%s_wildParasitismSp.pdf", focal.bee),
@@ -239,20 +238,50 @@ pdf.f(plotDiagPres,
 ## Floral div historgrams
 ## ************************************************************
 
-pltfloralDiv <- ggplot(by.site, aes(FloralDiv),
-                            fill = as.factor(AdjHR)) +
+by.site$SiteType <- as.factor(by.site$SiteType)
+by.site$AdjHR <- as.factor(by.site$AdjHR)
+
+pltfloralAbund <- ggplot(by.site, aes(FloralAbundance,
+                                      fill = AdjHR)) +
     geom_histogram(alpha = 0.5,
                    position = 'identity') +
-    labs(fill = "Hedgerow") +
+    labs(fill = "", x="Floral abundance") +
     ylab("Count") +
     theme(legend.position="top")+
-        scale_fill_brewer(palette="Dark2") +
-
+    scale_colour_viridis_d() +
+    scale_fill_viridis_d() +
     geom_vline(aes(xintercept =
-                       mean(FloralDiv[AdjHR == "HR"]),
+                       median(FloralAbundance[AdjHR == "HR"]),
                    col = AdjHR=="HR"), show.legend = FALSE) +
     geom_vline(aes(xintercept =
-                       mean(FloralDiv[AdjHR =="no HR"]),
-                   col = AdjHR =="no HR"), show.legend = FALSE)
+                       median(FloralAbundance[AdjHR =="no HR"]),
+                   col = AdjHR =="no HR"), show.legend = FALSE) +
+    theme(axis.title.x = element_text(vjust=-1),
+          axis.title.y = element_text(vjust=3),
+          plot.margin = margin(t = 10, r = 10, b = 10, l = 20))
 
-ggsave("figures/floralDivHist", width = 4, height = 4)
+ggsave("figures/floralAbundHist.pdf", width = 4, height = 4)
+
+
+
+pltfloralAbund <- ggplot(by.site, aes(FloralDiv,
+                                      fill = AdjHR)) +
+    geom_histogram(alpha = 0.5,
+                   position = 'identity') +
+    labs(fill = "", x="Floral diversity (Shannon's)") +
+    ylab("Count") +
+    theme(legend.position="top")+
+    scale_colour_viridis_d() +
+    scale_fill_viridis_d() +
+    geom_vline(aes(xintercept =
+                       median(FloralDiv[AdjHR == "HR"]),
+                   col = AdjHR=="HR"), show.legend = FALSE) +
+    geom_vline(aes(xintercept =
+                       median(FloralDiv[AdjHR =="no HR"]),
+                   col = AdjHR =="no HR"), show.legend = FALSE) +
+    theme(axis.title.x = element_text(vjust=-1),
+          axis.title.y = element_text(vjust=3),
+          plot.margin = margin(t = 10, r = 10, b = 10, l = 20))
+
+ggsave("figures/floralDivHist.pdf", width = 4, height = 4)
+

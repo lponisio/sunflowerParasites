@@ -20,7 +20,8 @@ source("src/runMRM.R")
 ##  distance matrices for parasites, bees, plants
 ## **********************************************************
 spec.raw <- spec.raw[spec.raw$Year == "2019",]
-spec.raw.wild <- spec[spec$GenusSpecies != "Apis mellifera",]
+spec.raw.wild <- spec.raw[spec.raw$GenusSpecies !=
+                          "Apis mellifera",]
 spec <- spec[spec$Year == "2019",]
 
 ## geo
@@ -42,7 +43,8 @@ dist.parasite <- as.matrix(vegdist(parasite.comm$comm,
                                    "gower"))
 
 ## geographic distance
-dist.geo <- rdist.earth(geo[,c("Long", "Lat")])
+dist.geo <- rdist.earth(geo[,c("Long", "Lat")],
+                        miles = FALSE)
 rownames(dist.geo) <- colnames(dist.geo)  <- geo$Site
 
 ## **********************************************************
@@ -52,12 +54,25 @@ rownames(dist.geo) <- colnames(dist.geo)  <- geo$Site
 ## Matrices
 
 plotCommDistbyGroup(dist.parasite, parasite.comm,
+                    "site.type", "parasite")
+
+
+plotCommDistbyGroup(dist.parasite, parasite.comm,
                     "adjsf", "parasite")
+
+
+plotCommDistbyGroup(dist.bee, bee.comm,
+                    "site.type", "bees")
+
 
 plotCommDistbyGroup(dist.bee, bee.comm,
                     "adjsf", "bees")
 
+
 ## not sure if this is necessary given it is rather obvious
+plotCommDistbyGroup(dist.plant, plant.comm,
+                    "site.type", "plants")
+
 plotCommDistbyGroup(dist.plant, plant.comm,
                     "adjsf", "plants")
 
@@ -89,6 +104,17 @@ dist.parasite <- dist.parasite[rownames(dist.geo), rownames(dist.geo)]
 
 MRM(as.dist(dist.parasite) ~ as.dist(dist.bee) +
         as.dist(dist.plant) + as.dist(dist.geo),  nperm=10^4)
+
+plotMRM <- function(){
+    plot(dist.parasite ~dist.geo,
+         ylab="Parasite community dissimilarity",
+         xlab="Geographic distance (km) ", las=1,
+         pch=16)
+}
+
+pdf.f(plotMRM,
+      file="figures/pcas/geoParasiteMRM.pdf",
+      width=5, height=5)
 
 ## within each site type
 site.types <- unique(spec[,c("Site", "SiteType")])

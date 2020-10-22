@@ -7,6 +7,7 @@ plot.panel <- function(dats,
                        col.fill,
                        ylabel,
                        plot.x=TRUE,
+                       plot.y=TRUE,
                        factor.var,
                        factor.var.col,
                        cols.points, ...){
@@ -66,15 +67,16 @@ plot.panel <- function(dats,
          yaxt="n",
          las=1, ...)
 
-    axis(2, pretty(range(c(other.lim, new.dd$plo, new.dd$phi,
-                           dats[, y1]),
-                         na.rm=TRUE),
-                   n = 5),
-         las=1)
-    mtext(ylabel, 2, line=4, cex=1)
-
+    if(plot.y){
+        axis(2, pretty(range(c(other.lim, new.dd$plo, new.dd$phi,
+                               dats[, y1]),
+                             na.rm=TRUE),
+                       n = 5),
+             las=1, cex.axis=1.4)
+        mtext(ylabel, 2, line=4, cex=1.4)
+    }
     if(plot.x){
-        axis(1, pretty(dats[,xs], 5))
+        axis(1, pretty(dats[,xs], 5), cex.axis=1.3)
     }
     plotting.loop()
 }

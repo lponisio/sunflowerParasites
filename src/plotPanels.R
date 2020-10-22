@@ -17,25 +17,26 @@ plotSigModelsParPresSite <- function(){
                factor.var="all",
                factor.var.col="cats",
                cols.points ="black")
-    mtext("Wild bee abundance", 1, line=3)
+    mtext("Wild bee abundance", 1, line=3, cex=1.2)
 
 
-     plot.panel(dats=by.site1,
+    plot.panel(dats=by.site1,
                new.dd=bloom.pi,
                y1="ParasitePresence",
-               xs="FloralDiv",
+               xs="FloralAbundance",
                col.lines="black",
                col.fill=cols.var,
                ylabel="",
                plot.x=TRUE,
+               plot.y=FALSE,
                factor.var="all",
                factor.var.col="cats",
                cols.points ="black")
-    mtext("Floral diversity", 1, line=3)
+    mtext("Floral abundance", 1, line=3, cex=1.2)
 
-       ## legend("topright", legend=names(cols.var),
-       ##     col=cols.var, pch=c(15),
-       ##     bty="n", cex=2)
+    ## legend("topright", legend=names(cols.var),
+    ##     col=cols.var, pch=c(15),
+    ##     bty="n", cex=2)
 
 
     ## plot.panel(dats=by.site1,
@@ -62,11 +63,11 @@ plotSigModelsParPresSite <- function(){
 
 
 plotSigModelsParPresSp <- function(){
-      by.site1$cats <- "all"
-     layout(matrix(1:2, ncol=1),
+    by.site1$cats <- "all"
+    layout(matrix(1:2, ncol=1),
            heights=c(3, 8))
-        par(oma=c(4,4,1,2), mar=c(0,0,0,0),
-            mgp=c(1.5,0.5,0))
+    par(oma=c(4,4,1,2), mar=c(0,0,0,0),
+        mgp=c(1.5,0.5,0))
 
     plot(NA, ylim=c(0,1), xlim=c(0,1),
          xaxt="n",
@@ -75,9 +76,9 @@ plotSigModelsParPresSp <- function(){
          ylab="",
          xlab="")
 
-     legend("center", legend=names(cols.sp),
-            col=cols.sp,
-            pch=16, ncol=3, cex=0.6,
+    legend("center", legend=names(cols.sp),
+           col=cols.sp,
+           pch=16, ncol=3, cex=0.6,
            bty="n")
 
     plot.panel(dats=by.site1,
@@ -92,12 +93,12 @@ plotSigModelsParPresSp <- function(){
                factor.var.col="cats",
                cols.points =cols.sp)
 
-      mtext("Body size (ITD mm)", 1, line=3)
-      mtext("Parasitism rate", 2, line=3)
+    mtext("Body size (ITD mm)", 1, line=3)
+    mtext("Parasitism rate", 2, line=3)
 
-      ## legend("bottomright", legend=names(cols.sp),
-      ##      col=cols.sp, pch=c(15),
-      ##      bty="n", cex=.65, ncol=1)
+    ## legend("bottomright", legend=names(cols.sp),
+    ##      col=cols.sp, pch=c(15),
+    ##      bty="n", cex=.65, ncol=1)
 
 }
 
@@ -107,7 +108,7 @@ plotSigModelsBeeAbund <- function(){
     layout(matrix(1:3, nrow=1, byrow=TRUE))
     ## par(oma=c(4,4,1,2), mar=c(4,2,1,1),
     ##     mgp=c(1.5,0.5,0))
-      par(oma=c(2,4,1,2), mar=c(4,2,1,1),
+    par(oma=c(2,4,1,2), mar=c(4,2,1,1),
         mgp=c(1.5,0.5,0))
     plot.panel(dats=by.site,
                new.dd=doy.pi,
@@ -117,11 +118,12 @@ plotSigModelsBeeAbund <- function(){
                col.fill=cols.var,
                ylabel="Wild bee abundance",
                plot.x=TRUE,
+               plot.y=TRUE,
                factor.var=unique(by.site$TransectType),
                factor.var.col="TransectType",
                cols.points ="black",
                other.lim=400)
-    mtext("Day of the year", 1, line=3)
+    mtext("Day of the year", 1, line=3, cex=1.2)
 
     plot.panel(dats=by.site,
                new.dd=sflyrprox.pi,
@@ -131,15 +133,16 @@ plotSigModelsBeeAbund <- function(){
                col.fill=cols.var,
                ylabel="",
                plot.x=TRUE,
+               plot.y=FALSE,
                factor.var=unique(by.site$TransectType),
                factor.var.col="TransectType",
                cols.points ="black",
                other.lim=400)
 
-    mtext("Previous year's sunflower weighted area", 1, line=3)
+    mtext("Previous year's sunflower weighted area", 1, line=3,  cex=1.2)
 
 
-       plot.panel(dats=by.site,
+    plot.panel(dats=by.site,
                new.dd=sfprox.pi,
                y1="TotalAbundance",
                xs="SunflowerCurrent1000",
@@ -147,13 +150,14 @@ plotSigModelsBeeAbund <- function(){
                col.fill=cols.var,
                ylabel="",
                plot.x=TRUE,
+               plot.y=FALSE,
                factor.var=unique(by.site$TransectType),
                factor.var.col="TransectType",
                cols.points ="black",
                other.lim=400)
-    mtext("Sunflower weighted area", 1, line=3)
+    mtext("Sunflower weighted area", 1, line=3, cex=1.2)
 
-        legend("topright",
+    legend("topright",
            legend=c("Hedgerow", "Sunflower", "Weedy margin"),
            col=cols.var, pch=c(15),
            bty="n", cex=2)
