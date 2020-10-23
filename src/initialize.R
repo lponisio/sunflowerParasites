@@ -1,6 +1,10 @@
-load("../../data/spec.Rdata")
-by.site <- read.csv("../../data/bySite.csv")
-sp.by.site <- read.csv("../../data/SpbySite.csv")
+library(lme4)
+library(car)
+library(MuMIn)
+
+load("data/spec.Rdata")
+by.site <- read.csv("data/bySite.csv")
+sp.by.site <- read.csv("data/SpbySite.csv")
 
 source("src/misc.R")
 source("src/calcCoeffTable.R")
