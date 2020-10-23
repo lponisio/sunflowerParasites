@@ -1,10 +1,5 @@
-## setwd("~/Dropbox/sunflower")
-setwd("analysis/parasiteCommunity")
+## This script runs the models for bee abundance and richness
 rm(list=ls())
-library(lme4)
-library(lmerTest)
-library(car)
-library(MuMIn)
 
 ## focal bee set by deafult to all if not specified
 source("src/initialize.R")
@@ -46,6 +41,7 @@ names(formulas) <- ys
 ## full model of wild bee abundance
 bee.abund.mod <- glmer.nb(formulas[["TotalAbundance"]],
                           na.action = "na.fail",
+                          glmerControl(optimizer="bobyqa"),
                           data=by.site)
 
 vif(bee.abund.mod)
@@ -62,6 +58,7 @@ ms.bee.abund <- dredge(bee.abund.mod,
 ## model average within 2 AICc of the min
 ma.bee.abund <- model.avg(ms.bee.abund, subset= delta < 2,
                           revised.var = TRUE)
+
 ## *********************************************************************
 ## full model of wild bee richness
 bee.rich.mod <- lmer(formulas[["Richness"]],
@@ -79,8 +76,6 @@ ms.bee.rich <- dredge(bee.rich.mod,
                   "scale(log(SunflowerLastYr350))"))
 ma.bee.rich <- model.avg(ms.bee.rich, subset= delta < 2,
                           revised.var = TRUE)
-
-
 
 
 mods <- list(ma.bee.abund,

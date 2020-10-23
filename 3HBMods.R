@@ -1,19 +1,15 @@
-## setwd("~/Dropbox/sunflower")
-setwd("analysis/parasiteCommunity")
+## This script runs the parasite models for the honey bess
+
 rm(list=ls())
-library(lme4)
-library(lmerTest)
-library(car)
-library(MuMIn)
-
 focal.bee <- "all"
-
 source("src/initialize.R")
 
+## response variables
 ys <- c("ParasitePresence",
         "cbind(ParasiteRichness, PossibleParasite)",
         parasites)
 
+## explanatory variables
 xvars <-   c("TransectType*scale(SFBloom)",
              "scale(TotalAbundance)",
              "scale(Richness)",

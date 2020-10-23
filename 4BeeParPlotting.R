@@ -1,4 +1,4 @@
-## setwd('~/Dropbox/sunflower/')
+## setwd('~/Dropbox/sunflowerParasites/')
 rm(list=ls())
 setwd('analysis/parasiteCommunity')
 source("src/misc.R")
@@ -7,10 +7,7 @@ source("src/plotPanels.R")
 source("src/CIplotting.R")
 source("src/diagnostics.R")
 library(viridis)
-library(MuMIn)
-library(lme4)
 library(boot)
-library(pals)
 library(car)
 library(ggplot2)
 
@@ -107,6 +104,9 @@ pdf.f(plotSigModelsBeeAbund,
       file=sprintf("figures/mods/%s_beeAbund.pdf", focal.bee),
       height=4, width=11)
 
+pdf.f(plotDiagAbund,
+      file=file.path('figures/diagnostics/beeAbund.pdf'),
+      height=7, width=3)
 ## ************************************************************
 ## bee richness models
 ## ************************************************************

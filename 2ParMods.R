@@ -1,18 +1,15 @@
-## setwd("~/Dropbox/sunflower")
-setwd("analysis/parasiteCommunity")
+## In this script we run the parasite presence models.
+
 rm(list=ls())
-library(lme4)
-library(lmerTest)
-library(car)
-library(MuMIn)
 source("src/initialize.R")
 print(focal.bee)
 
+## parasite response variables
 ys <- c("ParasitePresence",
         "cbind(ParasiteRichness, PossibleParasite)",
         parasites)
 
-if(focal.bee == "all" |focal.bee == "NotLasioMel"){
+## parasite explanatory variables
     xvars <-   c("SFBloom",
                  "scale(TotalAbundance)",
                  "Sociality",
@@ -24,16 +21,6 @@ if(focal.bee == "all" |focal.bee == "NotLasioMel"){
                  "(1|GenusSpecies)",
                  "(1|Genus)")
 
-} else{
-    ## don't include traits in species specific models, add sp
-    ## abundance
-    xvars <-   c("TransectType", "scale(SFBloom)",
-                 "scale(TotalAbundance)",
-                 "scale(Richness)",
-                 "scale(FloralAbundance)",
-                 "scale(FloralDiv)")
-}
-
 formulas <-lapply(ys, function(y) {
         as.formula(paste(y, "~",
                          paste(paste(xvars,
@@ -42,7 +29,6 @@ formulas <-lapply(ys, function(y) {
 })
 
 names(formulas) <- c("Presence", "Richness", parasites)
-
 
 ## *************************************************************
 ## parasite presence (any parasite)
@@ -91,6 +77,7 @@ mods <- list(ma.parasite.pres,
              ma.parasite.rich)
 coeffs <- lapply(mods, sumMSdredge)
 
+## make some nice tables for ms
 mapply(function(x, y){
     write.csv(x,
               file=sprintf("saved/tables/parasiteMod_%s.csv",

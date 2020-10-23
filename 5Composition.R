@@ -1,6 +1,10 @@
-## setwd('~/Dropbox/sunflower')
+## In this script we create community matrices for bees, parasites and
+## plants, when create dissimilarity matrices. We also create a
+## geographic dissimilarity matix. We use MRMs and PCOAs to examine
+## differences in community composition.
+
+## setwd('~/Dropbox/sunflowerParasites')
 rm(list=ls())
-setwd('analysis/parasiteCommunity')
 library(vegan)
 library(bipartite)
 library(tidyr)
