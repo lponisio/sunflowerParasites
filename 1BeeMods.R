@@ -12,84 +12,97 @@ print(focal.bee)
 ys <- c("TotalAbundance",
         "Richness")
 
-xvars <-      c("TransectType",
+
+## HR proximity and nat hab proximity deleted
+
+all.mod.vars <-      c("TransectType",
                 "SFBloom",
                 "scale(Doy)",
                 "scale(I(Doy^2))",
-                "scale(log(Nat350))",
-                "scale(log(Nat1000))",
-                "scale(log(HR350))",
-                "scale(log(HR1000))",
-                "scale(log(SunflowerCurrent1000))",
-                "scale(log(SunflowerLastYr1000))",
-                "scale(log(SunflowerCurrent350))",
-                "scale(log(SunflowerLastYr350))",
                 "scale(FloralAbundance)",
                 "scale(FloralDiv)",
                 "(1|Site)")
 
+## to choose between, 350 or 1000 buffer
+ xvars1 <-      c("scale(log(SunflowerCurrent1000))",
+                  "scale(log(SunflowerLastYr1000))")
+xvars2 <-      c("scale(log(SunflowerCurrent350))",
+                "scale(log(SunflowerLastYr350))")
 
-formulas <-lapply(ys, function(y) {
+formula1 <-lapply(ys, function(y) {
         as.formula(paste(y, "~",
-                         paste(paste(xvars,
+                         paste(paste(c(all.mod.vars, xvars1),
                                      collapse="+"))))
 })
 
-names(formulas) <- ys
+formula2 <-lapply(ys, function(y) {
+        as.formula(paste(y, "~",
+                         paste(paste(c(all.mod.vars, xvars2),
+                                     collapse="+"))))
+})
+
+names(formula1) <- names(formula2) <- ys
 
 ## *********************************************************************
 ## full model of wild bee abundance
-bee.abund.mod <- glmer.nb(formulas[["TotalAbundance"]],
-                          na.action = "na.fail",
-                          glmerControl(optimizer="bobyqa"),
+bee.abund.mod2 <- glmer.nb(formula2[["TotalAbundance"]],
+                           glmerControl(optimizer="bobyqa",
+                                        optCtrl=list(maxfun=1e6)),
                           data=by.site)
 
-vif(bee.abund.mod)
-## exclude the different gaussian decays from being included in the
-## same model
-ms.bee.abund <- dredge(bee.abund.mod,
-                       subset =
-                !("scale(log(Nat1000))" && "scale(log(Nat350))") &&
-                !("scale(log(HR350))" && "scale(log(HR1000))") &&
-                !("scale(log(SunflowerCurrent1000))" &&
-                  "scale(log(SunflowerCurrent350))") &&
-                  !("scale(log(SunflowerLastYr1000))" &&
-                    "scale(log(SunflowerLastYr350))"))
-## model average within 2 AICc of the min
-ma.bee.abund <- model.avg(ms.bee.abund, subset= delta < 2,
-                          revised.var = TRUE)
+vif(bee.abund.mod2)
+summary(bee.abund.mod2)
+AIC(bee.abund.mod2)
+
+
+## having some convergence issues, though sunflower1000 are not
+## colinear according to VIF
+bee.abund.mod1 <- glmer.nb(formula1[["TotalAbundance"]],
+                           glmerControl(optimizer="bobyqa",
+                                        optCtrl=list(maxfun=1e6)),
+                          data=by.site)
+
+vif(bee.abund.mod1)
+summary(bee.abund.mod1)
+AIC(bee.abund.mod1)
+
+## 350 buffers have the lower AIC
 
 ## *********************************************************************
 ## full model of wild bee richness
-bee.rich.mod <- lmer(formulas[["Richness"]],
-                          na.action = "na.fail",
+bee.rich.mod2 <- glmer.nb(formula2[["Richness"]],
+                           glmerControl(optimizer="bobyqa",
+                                        optCtrl=list(maxfun=1e6)),
                           data=by.site)
-## exclude the different gaussian decays from being included in the
-## same model
-ms.bee.rich <- dredge(bee.rich.mod,
-                       subset =
-                 !("scale(log(Nat1000))" && "scale(log(Nat350))") &&
-                !("scale(log(HR350))" && "scale(log(HR1000))") &&
-                !("scale(log(SunflowerCurrent1000))" &&
-                  "scale(log(SunflowerCurrent350))") &&
-                  !("scale(log(SunflowerLastYr1000))" &&
-                  "scale(log(SunflowerLastYr350))"))
-ma.bee.rich <- model.avg(ms.bee.rich, subset= delta < 2,
-                          revised.var = TRUE)
 
+vif(bee.rich.mod2)
+summary(bee.rich.mod2)
+AIC(bee.rich.mod2)
 
-mods <- list(ma.bee.abund,
-             ma.bee.rich)
-coeffs <- lapply(mods, sumMSdredge)
+## having some convergence issues
+bee.rich.mod1 <- glmer.nb(formula1[["Richness"]],
+                           glmerControl(optimizer="bobyqa",
+                                        optCtrl=list(maxfun=1e6)),
+                          data=by.site)
 
+vif(bee.rich.mod1)
+summary(bee.rich.mod1)
+AIC(bee.rich.mod1)
 
+## 350 buffers have the lower AIC
 
-save(ma.bee.abund,
-     ms.bee.abund,
-     ma.bee.rich,
-     ms.bee.rich,
+## *********************************************************************
+save(bee.rich.mod2,
+    bee.rich.mod2,
      file=sprintf("saved/%s_beeMods.RData",
                   gsub(" ", "", focal.bee)))
+
+
+
+mods <- list(bee.abund.mod,
+             bee.rich.mod)
+
+coeffs <- lapply(mods, function(x) summary(x)$coefficients)
 
 
 mapply(function(x, y){
