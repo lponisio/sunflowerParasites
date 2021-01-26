@@ -10,22 +10,20 @@ ys <- c("ParasitePresence",
         parasites)
 
 ## parasite explanatory variables
-    xvars <-   c("SFBloom",
-                 "scale(TotalAbundance)",
-                 "Sociality",
-                 "scale(Richness)",
-                 "scale(r.degree)",
-                 "scale(MeanITD)",
-                 "scale(FloralAbundance)",
-                 "scale(FloralDiv)",
-                 "(1|GenusSpecies)",
-                 "(1|Genus)")
+xvars <-   c(
+    "scale(TotalAbundance)",
+    "Sociality",
+    "scale(r.degree)",
+    "scale(MeanITD)",
+    "scale(FloralAbundance)",
+    "scale(FloralDiv)",
+    "(1|GenusSpecies)")
 
 formulas <-lapply(ys, function(y) {
-        as.formula(paste(y, "~",
-                         paste(paste(xvars,
-                                     collapse="+"),
-                               "(1|Site)", sep="+")))
+    as.formula(paste(y, "~",
+                     paste(paste(xvars,
+                                 collapse="+"),
+                           "(1|Site)", sep="+")))
 })
 
 names(formulas) <- c("Presence", "Richness", parasites)
@@ -36,21 +34,13 @@ names(formulas) <- c("Presence", "Richness", parasites)
 parasite.pres.mod <- glmer(formulas[["Presence"]],
                            family="binomial",
                            glmerControl(optimizer="bobyqa"),
-                           data=spec.wild.sub,
-                           na.action = "na.fail")
+                           data=spec.wild.sub)
 
 vif(parasite.pres.mod)
+summary(parasite.pres.mod)
+r.squaredGLMM(parasite.pres.mod)
 
-
-## exclude richness and abundaunce from the same model as they are
-## very colinear
-ms.parasite.pres <- dredge(parasite.pres.mod,
-            subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
-
-ma.parasite.pres <- model.avg(ms.parasite.pres, subset= delta < 2,
-                              revised.var = TRUE)
-
-summary(ma.parasite.pres)
+drop1(parasite.pres.mod, test="Chisq")
 
 ## *************************************************************
 ## parasite richness within a bee
@@ -59,41 +49,37 @@ summary(ma.parasite.pres)
 parasite.rich.mod <- glmer(formulas[["Richness"]],
                            family="binomial",
                            glmerControl(optimizer="bobyqa"),
-                           data=spec.wild.sub,
-                           na.action = "na.fail")
+                           data=spec.wild.sub)
 
-## include richness and abundaunce from the same model as they are
-## very colinear
-ms.parasite.rich <- dredge(parasite.rich.mod,
-         subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
+vif(parasite.rich.mod)
+summary(parasite.rich.mod)
+r.squaredGLMM(parasite.rich.mod)
 
 
-ma.parasite.rich <- model.avg(ms.parasite.rich, subset= delta < 2,
-                              revised.var = TRUE)
+drop1(parasite.rich.mod, test="Chisq")
 
-summary(ma.parasite.rich)
+mods <- list(parasite.rich.mod,
+             parasite.pres.mod)
 
-mods <- list(ma.parasite.pres,
-             ma.parasite.rich)
-coeffs <- lapply(mods, sumMSdredge)
+
+coeffs <- lapply(mods, function(x) round(coefficients(summary(x)),3))
+
 
 ## make some nice tables for ms
 mapply(function(x, y){
     write.csv(x,
               file=sprintf("saved/tables/parasiteMod_%s.csv",
                            y))
-      write.table(x,
-              file=sprintf("saved/tables/parasiteMod_%s.txt",
-                           y), sep="&")
-    },
-    x=coeffs,
-    y=ys[1:2]
+    write.table(x,
+                file=sprintf("saved/tables/parasiteMod_%s.txt",
+                             y), sep="&")
+},
+x=coeffs,
+y=ys[1:2]
 )
 
-save(ma.parasite.pres,
-     ms.parasite.pres,
-     ma.parasite.rich,
-     ms.parasite.rich,
+save(parasite.rich.mod,
+     parasite.pres.mod,
      file=sprintf("saved/%s_parMods.RData",
                   focal.bee))
 
@@ -103,28 +89,18 @@ save(ma.parasite.pres,
 runParModel <- function(parasite){
     print(parasite)
     parasite.mod <- glmer(formulas[[parasite]],
-                               family="binomial",
-                               glmerControl(optimizer="bobyqa"),
-                               data=spec.wild.sub,
-                               na.action = "na.fail")
+                          family="binomial",
+                          glmerControl(optimizer="bobyqa"),
+                          data=spec.wild.sub)
+    return(parasite.mod)
 
-    ## include richness and abundaunce from the same model as they are
-    ## very colinear
-    ms.parasite <- dredge(parasite.mod,
-         subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
-
-    ma.parasite <- model.avg(ms.parasite, subset= delta < 2,
-                                  revised.var = TRUE)
-
-    return(list(  ma.parasite=  ma.parasite,
-                ms.parasite=ms.parasite))
 }
 
 parasite.mods <- lapply(parasites, runParModel)
 names(parasite.mods) <- parasites
 
-par.sums <- lapply(parasite.mods,
-                   function(x) sumMSdredge(x$ma.parasite))
+par.select <- lapply(parasite.mods, drop1, test="Chisq")
+par.sums <- lapply(parasite.mods, summary)
 
 save(parasite.mods,
      file=sprintf("saved/%s_parasiteSpecific_parMods.RData",
@@ -133,6 +109,6 @@ save(parasite.mods,
 mapply(function(a,b){
     write.csv(a, file=sprintf("saved/tables/%s.csv", b))
     write.table(a, sep="&",  file=sprintf("saved/tables/%s.txt", b))
-   },
-                 a=par.sums,
-    b=names(par.sums))
+},
+a=par.sums,
+b=names(par.sums))
