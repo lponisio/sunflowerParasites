@@ -8,15 +8,13 @@ print(focal.bee)
 ## *************************************************************
 ## model selection: bee abundunace
 ## *************************************************************
-
 ys <- c("TotalAbundance",
         "Richness")
 
-
 ## HR proximity and nat hab proximity deleted
 
-all.mod.vars <-      c("TransectType",
-                "SFBloom",
+all.mod.vars <-  c("TransectType",
+                "scale(SFBloom)",
                 "scale(Doy)",
                 "scale(I(Doy^2))",
                 "scale(FloralAbundance)",
@@ -99,10 +97,10 @@ save(bee.rich.mod2,
 
 
 
-mods <- list(bee.abund.mod,
-             bee.rich.mod)
+mods <- list(bee.abund.mod2,
+             bee.rich.mod2)
 
-coeffs <- lapply(mods, function(x) summary(x)$coefficients)
+coeffs <- lapply(mods, function(x) round(coefficients(summary(x)),3))
 
 
 mapply(function(x, y){
