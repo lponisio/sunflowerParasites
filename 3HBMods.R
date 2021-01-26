@@ -10,9 +10,8 @@ ys <- c("ParasitePresence",
         parasites)
 
 ## explanatory variables
-xvars <-   c("TransectType*scale(SFBloom)",
-             "scale(TotalAbundance)",
-             "scale(Richness)",
+xvars <-   c("scale(TotalAbundance)",
+             ## "scale(Richness)",
              "scale(FloralAbundance)",
              "scale(FloralDiv)")
 
@@ -32,17 +31,11 @@ names(formulas) <- c("Presence", "Richness", parasites)
 parasite.pres.mod.hb <- glmer(formulas[[1]],
                               family="binomial",
                               glmerControl(optimizer="bobyqa"),
-                              data=hb,
-                              na.action = "na.fail")
+                              data=hb)
 
-ms.parasite.pres.hb <- dredge(parasite.pres.mod.hb,
-       subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
-
-ma.parasite.pres.hb <- model.avg(ms.parasite.pres.hb,
-                                 subset= delta < 2,
-                                 revised.var = TRUE)
-
-summary(ma.parasite.pres.hb)
+vif(parasite.pres.mod.hb)
+summary(parasite.pres.mod.hb)
+r.squaredGLMM(parasite.pres.mod.hb)
 
 ## *************************************************************
 ## parasite richness honey bees
@@ -51,38 +44,16 @@ summary(ma.parasite.pres.hb)
 parasite.rich.mod.hb <- glmer(formulas[[2]],
                               family="binomial",
                               glmerControl(optimizer="bobyqa"),
-                              data=hb,
-                              na.action = "na.fail")
+                              data=hb)
 
-ms.parasite.rich.hb <- dredge(parasite.rich.mod.hb,
-         subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
+vif(parasite.rich.mod.hb)
+summary(parasite.rich.mod.hb)
+r.squaredGLMM(parasite.rich.mod.hb)
 
-ma.parasite.rich.hb <- model.avg(ms.parasite.rich.hb,
-                                 subset= delta < 2,
-                                 revised.var = TRUE)
 
-summary(ma.parasite.rich.hb)
-
-save(ma.parasite.rich.hb,
-     ms.parasite.rich.hb,
-     ma.parasite.pres.hb,
-     ms.parasite.pres.hb,
+save(parasite.rich.mod.hb,
+     parasite.rich.mod.hb,
      file="saved/HBMods.RData")
-
-## plotting
-source("src/misc.R")
-source("src/predictIntervals.R")
-source("src/plotPanels.R")
-source("src/CIplotting.R")
-source("src/diagnostics.R")
-library(viridis)
-library(boot)
-
-## Total abundance
-summary(ma.parasite.pres.hb)
-top.mod.hb <- get.models(ms.parasite.pres.hb, 1)[[1]]
-summary(top.mod.hb)
-r.squaredGLMM(top.mod.hb)
 
 ## *************************************************************
 ## parasite specific models
@@ -92,25 +63,19 @@ runParModel <- function(parasite){
     parasite.mod <- glmer(formulas[[parasite]],
                                family="binomial",
                                glmerControl(optimizer="bobyqa"),
-                               data=hb,
-                               na.action = "na.fail")
+                               data=hb)
 
-    ## include richness and abundaunce from the same model as they are
-    ## very colinear
-    ms.parasite <- dredge(parasite.mod,
-         subset =  !("scale(Richness)" && "scale(TotalAbundance)"))
-
-    ma.parasite <- model.avg(ms.parasite, subset= delta < 2,
-                                  revised.var = TRUE)
-
-    return(list(  ma.parasite=  ma.parasite,
-                ms.parasite=ms.parasite))
+    return(parasite.mod)
 }
 
 parasite.mods <- lapply(parasites, runParModel)
 names(parasite.mods) <- parasites
+
 par.sums <- lapply(parasite.mods,
-                   function(x) sumMSdredge(x$ma.parasite))
+                   function(x) round(coefficients(summary(x)),3))
+
+par.mod.select <- lapply(parasite.mods,
+                         drop1, test="Chisq")
 
 
 save(parasite.mods,
