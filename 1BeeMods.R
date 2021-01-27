@@ -13,8 +13,11 @@ ys <- c("TotalAbundance",
 
 ## HR proximity and nat hab proximity deleted
 
+by.site$TransectType <- factor(by.site$TransectType,
+                               levels=c("SF", "HR", "WM"))
+
+
 all.mod.vars <-  c("TransectType",
-                "scale(SFBloom)",
                 "scale(Doy)",
                 "scale(I(Doy^2))",
                 "scale(FloralAbundance)",
@@ -90,7 +93,7 @@ AIC(bee.rich.mod1)
 ## 350 buffers have the lower AIC
 
 ## *********************************************************************
-save(bee.rich.mod2,
+save(bee.abund.mod2,
     bee.rich.mod2,
      file=sprintf("saved/%s_beeMods.RData",
                   gsub(" ", "", focal.bee)))
