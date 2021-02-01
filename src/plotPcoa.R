@@ -74,6 +74,10 @@ plotCommDistbyGroup  <- function(dist.mat, comm,
         ## dist.mat <- dist.mat[!dist.mat.na, !dist.mat.na]
         pcoa.comm <- cmdscale(dist.mat)
         groups <- comm[[comm.groups]]
+        dist.m <- as.dist(dist.mat)
+        print("betadisper result")
+        print(anova(betadisper(dist.m,groups)))
+
         pcoa.mod <- adonis(dist.mat~groups)
         plot(NA, asp=1,  cex=1.5,
              ylim=range(pcoa.comm[,2]),

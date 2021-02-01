@@ -145,7 +145,7 @@ plotSigModelsBeeAbund <- function(){
     plot.panel(dats=by.site,
                new.dd=sfprox.pi,
                y1="TotalAbundance",
-               xs="SunflowerCurrent1000",
+               xs="SunflowerCurrent350",
                col.lines="black",
                col.fill=cols.var,
                ylabel="",
@@ -158,7 +158,7 @@ plotSigModelsBeeAbund <- function(){
     mtext("Sunflower weighted area", 1, line=3, cex=1.2)
 
     legend("topright",
-           legend=c("Hedgerow", "Sunflower", "Weedy margin"),
+           legend=c("Sunflower", "Hedgerow", "Weedy margin"),
            col=cols.var, pch=c(15),
            bty="n", cex=2)
 
@@ -186,7 +186,7 @@ plotSigModelsBeeRich <- function(){
     mtext("Previous year's sunflower weighted area", 1, line=3)
 
     legend("topleft",
-           legend=c("Hedgerow", "Sunflower", "Weedy margin"),
+           legend=c("Sunflower", "Hedgerow", "Weedy margin"),
            col=cols.var, pch=c(15),
            bty="n")
 

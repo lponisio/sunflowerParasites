@@ -1,6 +1,5 @@
 ## setwd('~/Dropbox/sunflowerParasites/')
 rm(list=ls())
-setwd('analysis/parasiteCommunity')
 source("src/misc.R")
 source("src/predictIntervals.R")
 source("src/plotPanels.R")
@@ -16,14 +15,19 @@ print(focal.bee)
 
 
 sp.by.site <- read.csv("~/Dropbox/sunflower/data/SpbySite.csv")
+traits <- read.csv("~/Dropbox/sunflower/data/traits.csv")
+
+sp.by.site <- merge(sp.by.site, traits)
+
 sp.by.site <- sp.by.site[!is.na(sp.by.site$MeanITD),]
+
 sp.by.site$Sociality <- factor(sp.by.site$Sociality,
                                levels=c("social", "solitary"))
 
 sp.by.site <- sp.by.site[sp.by.site$Year == "2019",]
 
 by.site$TransectType <- factor(by.site$TransectType,
-                               levels=c("HR", "SF", "WM"))
+                               levels=c("SF", "HR", "WM"))
 
 cols.sp <- viridis(length(unique(sp.by.site$GenusSpecies)))
 names(cols.sp) <- sort(unique(sp.by.site$GenusSpecies))
@@ -33,13 +37,8 @@ names(cols.sp) <- sort(unique(sp.by.site$GenusSpecies))
 ## ************************************************************
 load(sprintf('saved/%s_BeeMods.RData', gsub(" ", "", focal.bee)))
 
-summary(ma.bee.abund)
-
-top.mod.abund <- get.models(ms.bee.abund, 1)[[1]]
+top.mod.abund <- bee.abund.mod2
 summary(top.mod.abund)
-r.squaredGLMM(top.mod.abund)
-vif(top.mod.abund)
-
 
 plotDiagAbund <- function(){
     plotDiagnostics(top.mod.abund, by.site)
@@ -49,7 +48,7 @@ pdf.f(plotDiagAbund,
 height=7, width=3)
 
 
-cols.var <- add.alpha(viridis(3), 0.5)[c(1,3,2)]
+cols.var <- add.alpha(viridis(3), 0.5)[c(3,1, 2)]
 names(cols.var) <- levels(by.site$TransectType)
 
 ## day of the year
@@ -57,9 +56,10 @@ dd.doy <- expand.grid(Doy=seq(
                           from= min(by.site$Doy),
                           to= max(by.site$Doy),
                           length=20),
-                      SunflowerCurrent1000=
-                          mean(by.site$SunflowerCurrent1000),
                       TransectType=unique(by.site$TransectType),
+                      FloralAbundance=mean(by.site$FloralAbundance),
+                      FloralDiv=mean(by.site$FloralDiv),
+                      SunflowerCurrent350=mean(by.site$SunflowerCurrent350),
                       SunflowerLastYr350=mean(by.site$SunflowerLastYr350),
                       TotalAbundance=0)
 
@@ -69,12 +69,14 @@ doy.pi <- predict.int(top.mod.abund,
                       "poisson")
 
 ## current sunflower surrounding
-dd.sfprox <- expand.grid(SunflowerCurrent1000=seq(
-                          from= min(by.site$SunflowerCurrent1000),
-                          to= max(by.site$SunflowerCurrent1000),
+dd.sfprox <- expand.grid(SunflowerCurrent350=seq(
+                          from= min(by.site$SunflowerCurrent350),
+                          to= max(by.site$SunflowerCurrent350),
                           length=20),
-                      Doy=mean(by.site$Doy),
-                      TransectType=unique(by.site$TransectType),
+                         Doy=mean(by.site$Doy),
+                 TransectType=unique(by.site$TransectType),
+                      FloralAbundance=mean(by.site$FloralAbundance),
+                      FloralDiv=mean(by.site$FloralDiv),
                       SunflowerLastYr350=mean(by.site$SunflowerLastYr350),
                       TotalAbundance=0)
 
@@ -88,10 +90,11 @@ dd.sflyrprox <- expand.grid(SunflowerLastYr350=seq(
                           from= min(by.site$SunflowerLastYr350),
                           to= max(by.site$SunflowerLastYr350),
                           length=20),
-                          Doy=mean(by.site$Doy),
-                          SunflowerCurrent1000=
-                          mean(by.site$SunflowerCurrent1000),
-                      TransectType=unique(by.site$TransectType),
+                         Doy=mean(by.site$Doy),
+                 TransectType=unique(by.site$TransectType),
+                      FloralAbundance=mean(by.site$FloralAbundance),
+                      FloralDiv=mean(by.site$FloralDiv),
+                      SunflowerCurrent350=mean(by.site$SunflowerCurrent350),
                       TotalAbundance=0)
 
 sflyrprox.pi <- predict.int(top.mod.abund,
@@ -107,24 +110,24 @@ pdf.f(plotSigModelsBeeAbund,
 pdf.f(plotDiagAbund,
       file=file.path('figures/diagnostics/beeAbund.pdf'),
       height=7, width=3)
+
 ## ************************************************************
 ## bee richness models
 ## ************************************************************
 
 if(focal.bee == "all" |focal.bee == "NotLasioMel"){
-    top.mod.rich <- get.models(ms.bee.rich,1)[[1]]
-    summary(top.mod.rich)
-    r.squaredGLMM(top.mod.rich)
-    vif(top.mod.rich)
+  top.mod.rich <- bee.rich.mod2
+summary(top.mod.rich)
 
     dd.rich.sflyrprox <- expand.grid(SunflowerLastYr350=seq(
                           from= min(by.site$SunflowerLastYr350),
                           to= max(by.site$SunflowerLastYr350),
                           length=20),
-                          Doy=mean(by.site$Doy),
-                          SunflowerCurrent1000=
-                          mean(by.site$SunflowerCurrent1000),
-                      TransectType=unique(by.site$TransectType),
+                         Doy=mean(by.site$Doy),
+                 TransectType=unique(by.site$TransectType),
+                      FloralAbundance=mean(by.site$FloralAbundance),
+                      FloralDiv=mean(by.site$FloralDiv),
+                      SunflowerCurrent350=mean(by.site$SunflowerCurrent350),
                       Richness=0)
 
     sflyrprox.rich.pi <- predict.int(top.mod.rich,

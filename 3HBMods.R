@@ -13,7 +13,8 @@ ys <- c("ParasitePresence",
 xvars <-   c("scale(TotalAbundance)",
              ## "scale(Richness)",
              "scale(FloralAbundance)",
-             "scale(FloralDiv)")
+             "scale(FloralDiv)"
+             )
 
 formulas <-lapply(ys, function(y) {
     as.formula(paste(y, "~",
