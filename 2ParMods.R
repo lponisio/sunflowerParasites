@@ -101,7 +101,9 @@ parasite.mods <- lapply(parasites, runParModel)
 names(parasite.mods) <- parasites
 
 par.select <- lapply(parasite.mods, drop1, test="Chisq")
-par.sums <- lapply(parasite.mods, summary)
+
+par.sums <- lapply(parasite.mods,
+                   function(x) round(coefficients(summary(x)),3))
 
 save(parasite.mods,
      file=sprintf("saved/%s_parasiteSpecific_parMods.RData",
