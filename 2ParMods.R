@@ -11,12 +11,13 @@ ys <- c("ParasitePresence",
 
 ## parasite explanatory variables
 xvars <-   c(
-    "scale(TotalAbundance)",
+    "scale(TotalAbundance)*scale(FloralAbundance)",
+    "scale(TotalAbundance)*scale(FloralDiv)",
     "Sociality",
     "scale(r.degree)",
     "scale(MeanITD)",
-    "scale(FloralAbundance)",
-    "scale(FloralDiv)",
+    ## "scale(FloralAbundance)",
+    ## "scale(FloralDiv)",
     "(1|GenusSpecies)")
 
 formulas <-lapply(ys, function(y) {

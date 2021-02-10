@@ -153,11 +153,8 @@ summary(top.mod.rich)
 load(sprintf('saved/%s_parMods.RData', gsub(" ", "", focal.bee)))
 
 ## Total abundance
-summary(ma.parasite.pres)
-top.mod <- get.models(ms.parasite.pres, 1)[[1]]
+top.mod <- parasite.pres.mod
 summary(top.mod)
-r.squaredGLMM(top.mod)
-vif(top.mod)
 
 cols.var <- add.alpha("grey", 0.5)
 names(cols.var) <- "all"
@@ -172,7 +169,12 @@ dd.abund <- expand.grid(TotalAbundance=seq(
                             to= max(sp.by.site$TotalAbundance),
                             length=20),
                         MeanITD=mean(sp.by.site$MeanITD),
+                        Sociality= levels(sp.by.site$Sociality),
                         FloralAbundance=mean(sp.by.site$FloralAbundance,
+                                             na.rm=TRUE),
+                        FloralDiv=mean(sp.by.site$FloralDiv,
+                                       na.rm=TRUE),
+                          r.degree=mean(sp.by.site$r.degree,
                                              na.rm=TRUE),
                         cats="all",
                         ParasitePresence=0)
@@ -181,21 +183,30 @@ abund.pi <- predict.int(top.mod,
                         dd.abund,
                         "ParasitePresence",
                         "binomial")
+abund.pi <- abund.pi[abund.pi$Sociality == "solitary",]
 
 ## floral diversity
 dd.bloom <- expand.grid(FloralAbundance=seq(
                             from= min(sp.by.site$FloralAbundance, na.rm=TRUE),
                             to= max(sp.by.site$FloralAbundance, na.rm=TRUE),
                             length=20),
-                        TotalAbundance=mean(sp.by.site$TotalAbundance),
-                        MeanITD=mean(sp.by.site$MeanITD),
-                          cats="all",
+                       MeanITD=mean(sp.by.site$MeanITD),
+                        Sociality= levels(sp.by.site$Sociality),
+                        TotalAbundance=mean(sp.by.site$TotalAbundance,
+                                             na.rm=TRUE),
+                        FloralDiv=mean(sp.by.site$FloralDiv,
+                                       na.rm=TRUE),
+                          r.degree=mean(sp.by.site$r.degree,
+                                             na.rm=TRUE),
+                        cats="all",
                         ParasitePresence=0)
 
 bloom.pi <- predict.int(top.mod,
                         dd.bloom,
                         "ParasitePresence",
                         "binomial")
+
+bloom.pi <- bloom.pi[bloom.pi$Sociality == "solitary",]
 
 
 if(focal.bee == "all" |focal.bee == "NotLasioMel"){
@@ -207,6 +218,11 @@ dd.itd <- expand.grid(MeanITD=seq(
                       TotalAbundance=mean(sp.by.site$TotalAbundance),
                       FloralAbundance=mean(sp.by.site$FloralAbundance,
                                            na.rm=TRUE),
+                      FloralDiv=mean(sp.by.site$FloralDiv,
+                                       na.rm=TRUE),
+                          r.degree=mean(sp.by.site$r.degree,
+                                        na.rm=TRUE),
+                        Sociality= levels(sp.by.site$Sociality),
                       cats="all",
                       ParasitePresence=0)
 
@@ -214,6 +230,8 @@ itd.pi <- predict.int(top.mod,
                       dd.itd,
                       "ParasitePresence",
                       "binomial")
+
+itd.pi <- itd.pi[itd.pi$Sociality == "solitary",]
 
 ## sig only models
 pdf.f(plotSigModelsParPresSite,
