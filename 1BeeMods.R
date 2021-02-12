@@ -21,7 +21,7 @@ all.mod.vars <-  c("TransectType",
                 "scale(Doy)",
                 "scale(I(Doy^2))",
                 "scale(FloralAbundance)",
-                "scale(FloralDiv)",
+                #"scale(FloralDiv)",
                 "(1|Site)")
 
 ## to choose between, 350 or 1000 buffer
