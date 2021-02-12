@@ -5,6 +5,7 @@ source("src/predictIntervals.R")
 source("src/plotPanels.R")
 source("src/CIplotting.R")
 source("src/diagnostics.R")
+source("src/plotInteractions.R")
 library(viridis)
 library(boot)
 library(car)
@@ -163,95 +164,95 @@ by.site1 <- sp.by.site
 colnames(by.site1)[colnames(by.site1) == "SiteParasitismRate"] <-
     "ParasitePresence"
 
-
-dd.abund <- expand.grid(TotalAbundance=seq(
-                            from= min(sp.by.site$TotalAbundance),
-                            to= max(sp.by.site$TotalAbundance),
-                            length=20),
-                        MeanITD=mean(sp.by.site$MeanITD),
-                        Sociality= levels(sp.by.site$Sociality),
-                        FloralAbundance=mean(sp.by.site$FloralAbundance,
-                                             na.rm=TRUE),
-                        FloralDiv=mean(sp.by.site$FloralDiv,
-                                       na.rm=TRUE),
-                          r.degree=mean(sp.by.site$r.degree,
-                                             na.rm=TRUE),
-                        cats="all",
-                        ParasitePresence=0)
-
-abund.pi <- predict.int(top.mod,
-                        dd.abund,
-                        "ParasitePresence",
-                        "binomial")
-abund.pi <- abund.pi[abund.pi$Sociality == "solitary",]
-
-## floral diversity
-dd.bloom <- expand.grid(FloralAbundance=seq(
-                            from= min(sp.by.site$FloralAbundance, na.rm=TRUE),
-                            to= max(sp.by.site$FloralAbundance, na.rm=TRUE),
-                            length=20),
-                       MeanITD=mean(sp.by.site$MeanITD),
-                        Sociality= levels(sp.by.site$Sociality),
-                        TotalAbundance=mean(sp.by.site$TotalAbundance,
-                                             na.rm=TRUE),
-                        FloralDiv=mean(sp.by.site$FloralDiv,
-                                       na.rm=TRUE),
-                          r.degree=mean(sp.by.site$r.degree,
-                                             na.rm=TRUE),
-                        cats="all",
-                        ParasitePresence=0)
-
-bloom.pi <- predict.int(top.mod,
-                        dd.bloom,
-                        "ParasitePresence",
-                        "binomial")
-
-bloom.pi <- bloom.pi[bloom.pi$Sociality == "solitary",]
+pdf.f(plotInteractions, file="figures/interactions.pdf",
+      height=8, width=6)
 
 
-if(focal.bee == "all" |focal.bee == "NotLasioMel"){
-## ITD
-dd.itd <- expand.grid(MeanITD=seq(
-                          from= min(sp.by.site$MeanITD),
-                          to= max(sp.by.site$MeanITD),
-                          length=20),
-                      TotalAbundance=mean(sp.by.site$TotalAbundance),
-                      FloralAbundance=mean(sp.by.site$FloralAbundance,
-                                           na.rm=TRUE),
-                      FloralDiv=mean(sp.by.site$FloralDiv,
-                                       na.rm=TRUE),
-                          r.degree=mean(sp.by.site$r.degree,
-                                        na.rm=TRUE),
-                        Sociality= levels(sp.by.site$Sociality),
-                      cats="all",
-                      ParasitePresence=0)
+## dd.abund <- expand.grid(TotalAbundance=seq(
+##                             from= min(sp.by.site$TotalAbundance),
+##                             to= max(sp.by.site$TotalAbundance),
+##                             length=20),
+##                         MeanITD=mean(sp.by.site$MeanITD),
+##                         Sociality= levels(sp.by.site$Sociality),
+##                         FloralAbundance=mean(sp.by.site$FloralAbundance,
+##                                              na.rm=TRUE),
+##                         FloralDiv=mean(sp.by.site$FloralDiv,
+##                                        na.rm=TRUE),
+##                           Lecty=levels(sp.by.site$Lecty)),
+##                         cats="all",
+##                         ParasitePresence=0)
 
-itd.pi <- predict.int(top.mod,
-                      dd.itd,
-                      "ParasitePresence",
-                      "binomial")
+## abund.pi <- predict.int(top.mod,
+##                         dd.abund,
+##                         "ParasitePresence",
+##                         "binomial")
+## abund.pi <- abund.pi[abund.pi$Sociality == "solitary",]
 
-itd.pi <- itd.pi[itd.pi$Sociality == "solitary",]
+## ## floral diversity
+## dd.bloom <- expand.grid(FloralAbundance=seq(
+##                             from= min(sp.by.site$FloralAbundance, na.rm=TRUE),
+##                             to= max(sp.by.site$FloralAbundance, na.rm=TRUE),
+##                             length=20),
+##                        MeanITD=mean(sp.by.site$MeanITD),
+##                         Sociality= levels(sp.by.site$Sociality),
+##                         TotalAbundance=mean(sp.by.site$TotalAbundance,
+##                                              na.rm=TRUE),
+##                         FloralDiv=mean(sp.by.site$FloralDiv,
+##                                        na.rm=TRUE),
+##                           Lecty=levels(sp.by.site$Lecty),
+##                         cats="all",
+##                         ParasitePresence=0)
 
-## sig only models
-pdf.f(plotSigModelsParPresSite,
-      file=sprintf("figures/mods/%s_wildParasitismSite.pdf", focal.bee),
-      height=5, width=12)
+## bloom.pi <- predict.int(top.mod,
+##                         dd.bloom,
+##                         "ParasitePresence",
+##                         "binomial")
 
-pdf.f(plotSigModelsParPresSp,
-      file=sprintf("figures/mods/%s_wildParasitismSp.pdf", focal.bee),
-      height=7, width=6)
-
-}
+## bloom.pi <- bloom.pi[bloom.pi$Sociality == "solitary",]
 
 
+## if(focal.bee == "all" |focal.bee == "NotLasioMel"){
+## ## ITD
+## dd.itd <- expand.grid(MeanITD=seq(
+##                           from= min(sp.by.site$MeanITD),
+##                           to= max(sp.by.site$MeanITD),
+##                           length=20),
+##                       TotalAbundance=mean(sp.by.site$TotalAbundance),
+##                       FloralAbundance=mean(sp.by.site$FloralAbundance,
+##                                            na.rm=TRUE),
+##                       FloralDiv=mean(sp.by.site$FloralDiv,
+##                                        na.rm=TRUE),
+##                           Lecty=levels(sp.by.site$Lecty),
+##                         Sociality= levels(sp.by.site$Sociality),
+##                       cats="all",
+##                       ParasitePresence=0)
 
-plotDiagPres <- function(){
-    plotDiagnostics(top.mod, spec.wild.sub)
-}
-pdf.f(plotDiagPres,
-      file=file.path('figures/diagnostics/parasitePres.pdf'),
-      height=7, width=3)
+## itd.pi <- predict.int(top.mod,
+##                       dd.itd,
+##                       "ParasitePresence",
+##                       "binomial")
+
+## itd.pi <- itd.pi[itd.pi$Sociality == "solitary",]
+
+## ## sig only models
+## pdf.f(plotSigModelsParPresSite,
+##       file=sprintf("figures/mods/%s_wildParasitismSite.pdf", focal.bee),
+##       height=5, width=12)
+
+## pdf.f(plotSigModelsParPresSp,
+##       file=sprintf("figures/mods/%s_wildParasitismSp.pdf", focal.bee),
+##       height=7, width=6)
+
+## }
+
+
+
+## plotDiagPres <- function(){
+##     plotDiagnostics(top.mod, spec.wild.sub)
+## }
+## pdf.f(plotDiagPres,
+##       file=file.path('figures/diagnostics/parasitePres.pdf'),
+##       height=7, width=3)
 
 
 
@@ -259,50 +260,50 @@ pdf.f(plotDiagPres,
 ## Floral div historgrams
 ## ************************************************************
 
-by.site$SiteType <- as.factor(by.site$SiteType)
-by.site$AdjHR <- as.factor(by.site$AdjHR)
+## by.site$SiteType <- as.factor(by.site$SiteType)
+## by.site$AdjHR <- as.factor(by.site$AdjHR)
 
-pltfloralAbund <- ggplot(by.site, aes(FloralAbundance,
-                                      fill = AdjHR)) +
-    geom_histogram(alpha = 0.5,
-                   position = 'identity') +
-    labs(fill = "", x="Floral abundance") +
-    ylab("Count") +
-    theme(legend.position="top")+
-    scale_colour_viridis_d() +
-    scale_fill_viridis_d() +
-    geom_vline(aes(xintercept =
-                       median(FloralAbundance[AdjHR == "HR"]),
-                   col = AdjHR=="HR"), show.legend = FALSE) +
-    geom_vline(aes(xintercept =
-                       median(FloralAbundance[AdjHR =="no HR"]),
-                   col = AdjHR =="no HR"), show.legend = FALSE) +
-    theme(axis.title.x = element_text(vjust=-1),
-          axis.title.y = element_text(vjust=3),
-          plot.margin = margin(t = 10, r = 10, b = 10, l = 20))
+## pltfloralAbund <- ggplot(by.site, aes(FloralAbundance,
+##                                       fill = AdjHR)) +
+##     geom_histogram(alpha = 0.5,
+##                    position = 'identity') +
+##     labs(fill = "", x="Floral abundance") +
+##     ylab("Count") +
+##     theme(legend.position="top")+
+##     scale_colour_viridis_d() +
+##     scale_fill_viridis_d() +
+##     geom_vline(aes(xintercept =
+##                        median(FloralAbundance[AdjHR == "HR"]),
+##                    col = AdjHR=="HR"), show.legend = FALSE) +
+##     geom_vline(aes(xintercept =
+##                        median(FloralAbundance[AdjHR =="no HR"]),
+##                    col = AdjHR =="no HR"), show.legend = FALSE) +
+##     theme(axis.title.x = element_text(vjust=-1),
+##           axis.title.y = element_text(vjust=3),
+##           plot.margin = margin(t = 10, r = 10, b = 10, l = 20))
 
-ggsave("figures/floralAbundHist.pdf", width = 4, height = 4)
+## ggsave("figures/floralAbundHist.pdf", width = 4, height = 4)
 
 
 
-pltfloralAbund <- ggplot(by.site, aes(FloralDiv,
-                                      fill = AdjHR)) +
-    geom_histogram(alpha = 0.5,
-                   position = 'identity') +
-    labs(fill = "", x="Floral diversity (Shannon's)") +
-    ylab("Count") +
-    theme(legend.position="top")+
-    scale_colour_viridis_d() +
-    scale_fill_viridis_d() +
-    geom_vline(aes(xintercept =
-                       median(FloralDiv[AdjHR == "HR"]),
-                   col = AdjHR=="HR"), show.legend = FALSE) +
-    geom_vline(aes(xintercept =
-                       median(FloralDiv[AdjHR =="no HR"]),
-                   col = AdjHR =="no HR"), show.legend = FALSE) +
-    theme(axis.title.x = element_text(vjust=-1),
-          axis.title.y = element_text(vjust=3),
-          plot.margin = margin(t = 10, r = 10, b = 10, l = 20))
+## pltfloralAbund <- ggplot(by.site, aes(FloralDiv,
+##                                       fill = AdjHR)) +
+##     geom_histogram(alpha = 0.5,
+##                    position = 'identity') +
+##     labs(fill = "", x="Floral diversity (Shannon's)") +
+##     ylab("Count") +
+##     theme(legend.position="top")+
+##     scale_colour_viridis_d() +
+##     scale_fill_viridis_d() +
+##     geom_vline(aes(xintercept =
+##                        median(FloralDiv[AdjHR == "HR"]),
+##                    col = AdjHR=="HR"), show.legend = FALSE) +
+##     geom_vline(aes(xintercept =
+##                        median(FloralDiv[AdjHR =="no HR"]),
+##                    col = AdjHR =="no HR"), show.legend = FALSE) +
+##     theme(axis.title.x = element_text(vjust=-1),
+##           axis.title.y = element_text(vjust=3),
+##           plot.margin = margin(t = 10, r = 10, b = 10, l = 20))
 
-ggsave("figures/floralDivHist.pdf", width = 4, height = 4)
+## ggsave("figures/floralDivHist.pdf", width = 4, height = 4)
 
