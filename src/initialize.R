@@ -31,9 +31,10 @@ spec.wild <- spec[!spec$GenusSpecies %in% managed.bees,]
 
 spec.wild.sub <- spec.wild[!is.na(spec.wild$Sociality) &
                            !is.na(spec.wild$MeanITD) &
-                           !is.na(spec.wild$r.degree),]
+                           !is.na(spec.wild$Lecty),]
 
 spec.wild.sub <- spec.wild.sub[spec.wild.sub$Year == "2019",]
+
 
 ## sadly drops all 2018 data
 by.site <- by.site[!is.na(by.site$FloralRichness),]

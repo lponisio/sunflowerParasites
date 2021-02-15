@@ -34,8 +34,8 @@ parasite.pres.mod <- glmer(formulas[["Presence"]],
                            glmerControl(optimizer="bobyqa"),
                            data=spec.wild.sub)
 
-vif(parasite.pres.mod)
 summary(parasite.pres.mod)
+vif(parasite.pres.mod)
 r.squaredGLMM(parasite.pres.mod)
 
 drop1(parasite.pres.mod, test="Chisq")
