@@ -3,7 +3,6 @@
 ## geographic dissimilarity matix. We use MRMs and PCOAs to examine
 ## differences in community composition.
 
-## setwd('~/Dropbox/sunflowerParasites')
 rm(list=ls())
 library(vegan)
 library(bipartite)

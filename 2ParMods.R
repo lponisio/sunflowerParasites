@@ -2,7 +2,6 @@
 
 rm(list=ls())
 source("src/initialize.R")
-print(focal.bee)
 
 ## parasite response variables
 ys <- c("ParasitePresence",
@@ -11,11 +10,58 @@ ys <- c("ParasitePresence",
 
 ## parasite explanatory variables
 xvars <-   c(
-    "scale(TotalAbundance)*scale(FloralAbundance)",
+    "scale(TotalAbundance)*scale(FloralDiv)",
     "Sociality",
     "Lecty",
     "scale(MeanITD)",
     "(1|GenusSpecies)")
+
+## *************************************************************
+## reviwer suggestions
+
+## reviwer 1 suggestion to match Graystock et al. 2020
+## https://doi.org/10.1038/s41559-020-1247-x
+## no evidence for a strong effect of Doy on parasitism
+
+## xvars <-   c(
+##     "scale(Doy)",
+##     "scale(I(Doy^2))",
+##     "scale(FloralAbundance)",
+##     "Sociality",
+##     "Lecty",
+##     "scale(MeanITD)",
+##     "(1|GenusSpecies)")
+
+## reviwer 2 suggestion 1
+
+## xvars <-   c(
+##     "scale(HBParasitismRate)",
+##     "scale(MelissodesAbundance)",
+##     "scale(TotalAbundance)*scale(FloralAbundance)",
+##     "Sociality",
+##     "Lecty",
+##     "scale(MeanITD)",
+##     "(1|GenusSpecies)")
+
+## reviwer 2 suggestion 2
+## xvars <-   c(
+##     "scale(HBNosemaCeranae)",
+##     "scale(TotalAbundance)*scale(FloralAbundance)",
+##     "Sociality",
+##     "Lecty",
+##     "scale(MeanITD)",
+##     "(1|GenusSpecies)")
+
+
+## reviwer 2 suggestion 3
+xvars <-   c(
+    "scale(BeeDivSimp)*scale(FloralAbundance)",
+    "Sociality",
+    "Lecty",
+    "scale(MeanITD)",
+    "(1|GenusSpecies)")
+
+## *************************************************************
 
 formulas <-lapply(ys, function(y) {
     as.formula(paste(y, "~",
@@ -97,7 +143,7 @@ runParModel <- function(parasite){
 parasite.mods <- lapply(parasites, runParModel)
 names(parasite.mods) <- parasites
 
-par.select <- lapply(parasite.mods, drop1, test="Chisq")
+## par.select <- lapply(parasite.mods, drop1, test="Chisq")
 
 par.sums <- lapply(parasite.mods,
                    function(x) round(coefficients(summary(x)),3))

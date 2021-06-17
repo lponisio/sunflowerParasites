@@ -10,7 +10,8 @@ plot.panel <- function(dats,
                        plot.y=TRUE,
                        factor.var,
                        factor.var.col,
-                       cols.points, ...){
+                       cols.points,
+                       pchs.points=16,...){
     plotting.loop <- function(){
         for(var in factor.var){
             these.dats <- dats[dats[, factor.var.col]== var,]
@@ -43,17 +44,16 @@ plot.panel <- function(dats,
         ys <- data.frame(y=dats[,y1], x=dats[,xs])
         these.cols <- cols.points[dats$GenusSpecies]
         if(all(is.na(these.cols))) these.cols <- cols.var[dats[, factor.var.col]]
-        ## pchs <- 1:length(unique(dats[, factor.var.col])) +14
-        ## names(pchs) <- unique(dats[, factor.var.col])
-        ## these.pchs <- pchs[dats[, factor.var.col]]
+        if(length(pchs.points) > 1) pchs.points <- pchs.points[dats$GenusSpecies]
 
         points(x=ys$x,
                y=ys$y,
-               pch=16,
+               pch= pchs.points,
                col=these.cols,
                cex=1.2)
         points(x=ys$x,
                y=ys$y,
+               pch=pchs.points-15,
                col="black",
                cex=1.2)
     }

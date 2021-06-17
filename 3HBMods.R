@@ -9,9 +9,9 @@ ys <- c("ParasitePresence",
         "cbind(ParasiteRichness, PossibleParasite)",
         parasites)
 
+
 ## explanatory variables
-xvars <-   c("scale(TotalAbundance)*scale(FloralAbundance)",
-             "scale(TotalAbundance)*scale(FloralDiv)")
+xvars <-   c("scale(TotalAbundance)*scale(FloralRichness)")
 
 formulas <-lapply(ys, function(y) {
     as.formula(paste(y, "~",

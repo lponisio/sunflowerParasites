@@ -20,8 +20,7 @@ by.site$TransectType <- factor(by.site$TransectType,
 all.mod.vars <-  c("TransectType",
                 "scale(Doy)",
                 "scale(I(Doy^2))",
-                "scale(FloralAbundance)",
-                #"scale(FloralDiv)",
+                "scale(FloralDiv)",
                 "(1|Site)")
 
 ## to choose between, 350 or 1000 buffer
@@ -56,8 +55,8 @@ summary(bee.abund.mod2)
 AIC(bee.abund.mod2)
 
 
-## having some convergence issues, though sunflower1000 are not
-## colinear according to VIF
+## having some convergence issues, though sunflower1000 past present
+## are not colinear according to VIF
 bee.abund.mod1 <- glmer.nb(formula1[["TotalAbundance"]],
                            glmerControl(optimizer="bobyqa",
                                         optCtrl=list(maxfun=1e6)),
@@ -93,8 +92,8 @@ AIC(bee.rich.mod1)
 ## 350 buffers have the lower AIC
 
 ## *********************************************************************
-save(bee.abund.mod2,
-    bee.rich.mod2,
+save(bee.abund.mod2, bee.abund.mod1,
+    bee.rich.mod2, bee.rich.mod1,
      file=sprintf("saved/%s_beeMods.RData",
                   gsub(" ", "", focal.bee)))
 

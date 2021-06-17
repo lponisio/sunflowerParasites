@@ -11,11 +11,6 @@ source("src/calcCoeffTable.R")
 
 args <- commandArgs(trailingOnly=TRUE)
 
-if(length(args) != 0){
-    focal.bee <- args[1]
-} else{
-    focal.bee <- "all"
-}
 spec.raw <- spec
 
 parasites <- c("Apicystis", "Ascosphaera", "CrithidiaSpp",
@@ -29,11 +24,7 @@ managed.bees  <- c("Apis mellifera", "Osmia californica")
 
 spec.wild <- spec[!spec$GenusSpecies %in% managed.bees,]
 
-spec.wild.sub <- spec.wild[!is.na(spec.wild$Sociality) &
-                           !is.na(spec.wild$MeanITD) &
-                           !is.na(spec.wild$Lecty),]
-
-spec.wild.sub <- spec.wild.sub[spec.wild.sub$Year == "2019",]
+spec.wild.sub <- spec.wild[spec.wild$Year == "2019",]
 
 
 ## sadly drops all 2018 data
@@ -53,42 +44,10 @@ sp.by.site <- sp.by.site[sp.by.site$Year == "2019", ]
 sp.by.site.wild <-
     sp.by.site[!sp.by.site$GenusSpecies %in% managed.bees,]
 
-
-
-if(focal.bee != "all" & focal.bee != "NotLasioMel"){
-    by.site  <- sp.by.site.wild[sp.by.site.wild$GenusSpecies ==
-                                focal.bee,]
-    colnames(by.site)[colnames(by.site) == "Abundance"] <-
-        "TotalAbundance"
-
-    spec.wild.sub <-  spec.wild.sub[spec.wild.sub$GenusSpecies ==
-                                focal.bee,]
-}
-
-if(focal.bee == "NotLasioMel"){
-    most.abund <- c("Melissodes agilis", "Lasioglossum incompletum")
-    sub.by.sp  <- sp.by.site.wild[!sp.by.site.wild$GenusSpecies %in%
-                                  most.abund,]
-
-    total.abund <- aggregate(list(TotalAbundance=sub.by.sp$Abundance),
-                             list(Site=sub.by.sp$Site,
-                                  Doy=sub.by.sp$Doy,
-                                  Year=sub.by.sp$Year),
-                             sum)
-    by.site$TotalAbundance <- NULL
-
-    by.site$TotalAbundance <-   total.abund$TotalAbundance[
-                                                match(paste(by.site$Doy,
-                                                            by.site$Site),
-                                                      paste(total.abund$Doy,
-                                                            total.abund$Site))]
-    by.site$TotalAbundance[is.na(by.site$TotalAbundance)] <- 0
-}
-
-
 spec.wild$SFBloom <- as.numeric(spec.wild$SFBloom)
 spec.wild.sub$SFBloom <- as.numeric(spec.wild.sub$SFBloom)
 
+spec.wild.sub$MelissodesAbundance[is.na(spec.wild.sub$MelissodesAbundance)] <- 0
 
 ## honey bee data
 hb <- spec[spec$GenusSpecies == "Apis mellifera",]

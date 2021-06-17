@@ -127,6 +127,7 @@ plotParasiteMap <- function(){
         mgp=c(1.5,0.5,0))
     heatmap.2(parasite.comms[[parasite]],
               trace="none",
-              col=colfunc)
+              col=colfunc,
+              breaks=seq(0, 1, 0.1))
     mtext(parasite, 3, line=2.5)
 }
