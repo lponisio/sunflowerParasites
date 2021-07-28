@@ -6,22 +6,24 @@ source("src/initialize.R")
 ## parasite response variables
 ys <- c("ParasitePresence",
         "cbind(ParasiteRichness, PossibleParasite)",
+        "log(ParasiteRichness +1)", ## reviwer 3 suggestion
+        "ParasiteRichness", ## reviwer 3 suggestion
         parasites)
 
 ## parasite explanatory variables
 xvars <-   c(
-    "scale(TotalAbundance)*scale(FloralDiv)",
+    "scale(TotalAbundance)*scale(FloralAbundance)",
     "Sociality",
     "Lecty",
     "scale(MeanITD)",
     "(1|GenusSpecies)")
 
 ## *************************************************************
-## reviwer suggestions
+## reviewer suggestions
 
-## reviwer 1 suggestion to match Graystock et al. 2020
-## https://doi.org/10.1038/s41559-020-1247-x
-## no evidence for a strong effect of Doy on parasitism
+## ## reviewer 1 suggestion to match Graystock et al. 2020
+## ## https://doi.org/10.1038/s41559-020-1247-x
+## ## no evidence for a strong effect of Doy on parasitism
 
 ## xvars <-   c(
 ##     "scale(Doy)",
@@ -32,7 +34,7 @@ xvars <-   c(
 ##     "scale(MeanITD)",
 ##     "(1|GenusSpecies)")
 
-## reviwer 2 suggestion 1
+## ## reviewer 2 suggestion 2
 
 ## xvars <-   c(
 ##     "scale(HBParasitismRate)",
@@ -43,7 +45,7 @@ xvars <-   c(
 ##     "scale(MeanITD)",
 ##     "(1|GenusSpecies)")
 
-## reviwer 2 suggestion 2
+## ## reviewer 2 suggestion 1
 ## xvars <-   c(
 ##     "scale(HBNosemaCeranae)",
 ##     "scale(TotalAbundance)*scale(FloralAbundance)",
@@ -53,13 +55,13 @@ xvars <-   c(
 ##     "(1|GenusSpecies)")
 
 
-## reviwer 2 suggestion 3
-xvars <-   c(
-    "scale(BeeDivSimp)*scale(FloralAbundance)",
-    "Sociality",
-    "Lecty",
-    "scale(MeanITD)",
-    "(1|GenusSpecies)")
+## ## reviewer 2 suggestion 2
+## xvars <-   c(
+##     "scale(BeeDivSimp)*scale(FloralAbundance)",
+##     "Sociality",
+##     "Lecty",
+##     "scale(MeanITD)",
+##     "(1|GenusSpecies)")
 
 ## *************************************************************
 
@@ -70,7 +72,8 @@ formulas <-lapply(ys, function(y) {
                            "(1|Site)", sep="+")))
 })
 
-names(formulas) <- c("Presence", "Richness", parasites)
+names(formulas) <- c("Presence", "Richness", "ln_Richness",
+                     "Richness_poi", parasites)
 
 ## *************************************************************
 ## parasite presence (any parasite)
@@ -84,6 +87,7 @@ summary(parasite.pres.mod)
 vif(parasite.pres.mod)
 r.squaredGLMM(parasite.pres.mod)
 
+## for double checking pvalues with a more conservative approach
 drop1(parasite.pres.mod, test="Chisq")
 
 ## *************************************************************
@@ -95,12 +99,30 @@ parasite.rich.mod <- glmer(formulas[["Richness"]],
                            glmerControl(optimizer="bobyqa"),
                            data=spec.wild.sub)
 
+
 vif(parasite.rich.mod)
 summary(parasite.rich.mod)
 r.squaredGLMM(parasite.rich.mod)
+AIC(parasite.rich.mod)
 
 
-drop1(parasite.rich.mod, test="Chisq")
+## natural log transformation
+parasite.rich.mod.ln <- lmer(formulas[["ln_Richness"]],
+                             data=spec.wild.sub)
+
+summary(parasite.rich.mod.ln)
+AIC(parasite.rich.mod.ln)
+
+## not transformation, using poission family
+parasite.rich.mod.poi <- glmer(formulas[["Richness_poi"]],
+                               family="poisson",
+                               glmerControl(optimizer="bobyqa"),
+                               data=spec.wild.sub)
+
+summary(parasite.rich.mod.poi)
+AIC(parasite.rich.mod.poi)
+
+####
 
 mods <- list(parasite.rich.mod,
              parasite.pres.mod)
@@ -123,13 +145,15 @@ y=ys[1:2]
 )
 
 save(parasite.rich.mod,
+     parasite.rich.mod.ln,
+     parasite.rich.mod.poi,
      parasite.pres.mod,
-     file=sprintf("saved/%s_parMods.RData",
-                  focal.bee))
+     file="saved/all_parMods.RData")
 
 ## *************************************************************
 ## parasite specific models
 ## *************************************************************
+
 runParModel <- function(parasite){
     print(parasite)
     parasite.mod <- glmer(formulas[[parasite]],
@@ -149,8 +173,7 @@ par.sums <- lapply(parasite.mods,
                    function(x) round(coefficients(summary(x)),3))
 
 save(parasite.mods,
-     file=sprintf("saved/%s_parasiteSpecific_parMods.RData",
-                  focal.bee))
+     file=("saved/all_parasiteSpecific_parMods.RData"))
 
 mapply(function(a,b){
     write.csv(a, file=sprintf("saved/tables/%s.csv", b))

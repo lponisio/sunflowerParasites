@@ -9,9 +9,10 @@ library(viridis)
 library(boot)
 library(car)
 library(ggplot2)
+library(performance)
 
+focal.bee <- "all"
 source('src/initialize.R')
-print(focal.bee)
 
 sp.by.site <- read.csv("../sunflower/data/SpbySite.csv")
 traits <- read.csv("../sunflower/data/traits.csv")
@@ -47,12 +48,10 @@ load(sprintf('saved/%s_BeeMods.RData', gsub(" ", "", focal.bee)))
 top.mod.abund <- bee.abund.mod2
 summary(top.mod.abund)
 
-plotDiagAbund <- function(){
-    plotDiagnostics(top.mod.abund, by.site)
-}
-pdf.f(plotDiagAbund,
-      file=file.path('figures/diagnostics/beeAbund.pdf'),
-height=7, width=3)
+pdf("figures/diagnostics/beeAbund.pdf",
+    width = 12, height = 8)
+check_model(top.mod.abund)
+dev.off()
 
 cols.var <- add.alpha(viridis(3), 0.5)[c(3,1, 2)]
 names(cols.var) <- levels(by.site$TransectType)
@@ -63,7 +62,7 @@ dd.doy <- expand.grid(Doy=seq(
                           to= max(by.site$Doy),
                           length=20),
                       TransectType=unique(by.site$TransectType),
-                      FloralRichness=mean(by.site$FloralRichness),
+                      FloralAbundance=mean(by.site$FloralAbundance),
                       SunflowerCurrent350=mean(by.site$SunflowerCurrent350),
                       SunflowerLastYr350=mean(by.site$SunflowerLastYr350),
                       TotalAbundance=0)
@@ -75,19 +74,19 @@ doy.pi <- predict.int(top.mod.abund,
 
 ## sf last year
 dd.sflyrprox <- expand.grid(SunflowerLastYr350=seq(
-                          from= min(by.site$SunflowerLastYr350),
-                          to= max(by.site$SunflowerLastYr350),
-                          length=20),
-                         Doy=mean(by.site$Doy),
-                 TransectType=unique(by.site$TransectType),
-                      FloralRichness=mean(by.site$FloralRichness),
-                      SunflowerCurrent350=mean(by.site$SunflowerCurrent350),
-                      TotalAbundance=0)
+                                from= min(by.site$SunflowerLastYr350),
+                                to= max(by.site$SunflowerLastYr350),
+                                length=20),
+                            Doy=mean(by.site$Doy),
+                            TransectType=unique(by.site$TransectType),
+                            FloralAbundance=mean(by.site$FloralAbundance),
+                            SunflowerCurrent350=mean(by.site$SunflowerCurrent350),
+                            TotalAbundance=0)
 
 sflyrprox.pi <- predict.int(top.mod.abund,
-                      dd.sflyrprox,
-                      "TotalAbundance",
-                      "poisson")
+                            dd.sflyrprox,
+                            "TotalAbundance",
+                            "poisson")
 
 ## sig only models
 pdf.f(plotSigModelsBeeAbund,
@@ -101,34 +100,27 @@ pdf.f(plotDiagAbund,
 ## ************************************************************
 ## bee richness models
 ## ************************************************************
-  top.mod.rich <- bee.rich.mod2
+top.mod.rich <- bee.rich.mod2
 summary(top.mod.rich)
 
-    dd.rich.sflyrprox <- expand.grid(SunflowerLastYr350=seq(
-                          from= min(by.site$SunflowerLastYr350),
-                          to= max(by.site$SunflowerLastYr350),
-                          length=20),
-                         Doy=mean(by.site$Doy),
-                 TransectType=unique(by.site$TransectType),
-                      FloralRichness=mean(by.site$FloralRichness),
-                      SunflowerCurrent350=mean(by.site$SunflowerCurrent350),
-                      Richness=0)
+dd.rich.sflyrprox <- expand.grid(SunflowerLastYr350=seq(
+                                     from= min(by.site$SunflowerLastYr350),
+                                     to= max(by.site$SunflowerLastYr350),
+                                     length=20),
+                                 Doy=mean(by.site$Doy),
+                                 TransectType=unique(by.site$TransectType),
+                                 FloralAbundance=mean(by.site$FloralAbundance),
+                                 SunflowerCurrent350=mean(by.site$SunflowerCurrent350),
+                                 Richness=0)
 
-    sflyrprox.rich.pi <- predict.int(top.mod.rich,
-                               dd.rich.sflyrprox,
-                               "Richness")
+sflyrprox.rich.pi <- predict.int(top.mod.rich,
+                                 dd.rich.sflyrprox,
+                                 "Richness")
 
-    pdf.f(plotSigModelsBeeRich,
-          file=sprintf("figures/mods/%s_beeRich.pdf", focal.bee),
-          height=5, width=6)
-
-    plotDiagRich <- function(){
-        plotDiagnostics(top.mod.rich, by.site)
-    }
-    pdf.f(plotDiagRich,
-          file=file.path('figures/diagnostics/beeRich.pdf'),
-          height=7, width=3)
-
+pdf("figures/diagnostics/beeRich.pdf",
+    width = 12, height = 8)
+check_model(top.mod.rich)
+dev.off()
 
 ## ************************************************************
 ## Parasite presence models wild bees
@@ -158,10 +150,10 @@ dd.itd <- expand.grid(MeanITD=seq(
                           to= max(sp.by.site$MeanITD),
                           length=20),
                       TotalAbundance=mean(sp.by.site$TotalAbundance),
-                      FloralRichness=mean(sp.by.site$FloralRichness,
-                                           na.rm=TRUE),
-                          Lecty=unique(sp.by.site$Lecty),
-                        Sociality= unique(sp.by.site$Sociality),
+                      FloralAbundance=mean(sp.by.site$FloralAbundance,
+                                          na.rm=TRUE),
+                      Lecty=unique(sp.by.site$Lecty),
+                      Sociality= unique(sp.by.site$Sociality),
                       cats="all",
                       ParasitePresence=0)
 
@@ -176,4 +168,17 @@ itd.pi <- itd.pi[itd.pi$Sociality == "solitary",]
 pdf.f(plotSigModelsParPresSp,
       file=sprintf("figures/mods/%s_wildParasitismSp.pdf", focal.bee),
       height=6, width=6.7)
+
+
+## richness diagnostics
+pdf("figures/diagnostics/parRichLn.pdf",
+    width = 12, height = 8)
+check_model(parasite.rich.mod.ln)
+dev.off()
+
+## richness diagnostics
+pdf("figures/diagnostics/parRichPoi.pdf",
+    width = 12, height = 8)
+check_model(parasite.rich.mod.poi)
+dev.off()
 
